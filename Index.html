@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gomoku: Xin vs Shan</title>
+    <!-- PeerJS for WebRTC -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* Board Colors */
+            --grid-line-color: #4a3b2a; 
+            --stone-shadow: rgba(0, 0, 0, 0.4);
+            --bg-color: #2c3e50;
+            --panel-bg: rgba(0, 0, 0, 0.3);
+            --ai-color: #8e44ad;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: white;
+            overflow: hidden;
+        }
+
+        /* --- Screens --- */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .active-screen {
+            display: flex;
+        }
+
+        /* --- Lobby Styles --- */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s, background-color 0.2s;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .btn-create { background-color: #27ae60; }
+        .btn-join { background-color: #2980b9; }
+        .btn-copy { background-color: #f39c12; }
+        .btn-local { background-color: #7f8c8d; }
+        .btn-ai { background: linear-gradient(45deg, #8e44ad, #3498db); border: 1px solid rgba(255,255,255,0.2); }
+        .btn-ai:hover { filter: brightness(1.2); }
+        .btn-danger { background-color: #c0392b; }
+        .btn-secondary { background-color: #7f8c8d; }
+
+        /* --- Game Layout --- */
+        #game-layout {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .player-panel {
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 15px;
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .player-panel.active-turn {
+            box-shadow: 0 0 15px #f1c40f;
+            border: 2px solid #f1c40f;
+        }
+
+        /* Standard Icon Avatar */
+        .avatar {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #bdc3c7;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 90px;
+            height: 90px;
+        }
+
+        /* Custom Image Avatar (Xin) */
+        .custom-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+            display: block; /* Ensure it's visible */
+        }
+
+        .ai-thinking .avatar {
+            animation: pulse 1.5s infinite;
+            color: var(--ai-color);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); text-shadow: 0 0 0 rgba(142, 68, 173, 0.4); }
+            50% { transform: scale(1.1); text-shadow: 0 0 20px rgba(142, 68, 173, 0.8); }
+            100% { transform: scale(1); text-shadow: 0 0 0 rgba(142, 68, 173, 0.4); }
+        }
+
+        .speech-bubble {
+            position: absolute;
+            top: -60px;
+            background: white;
+            color: #333;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            width: 180px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px 8px 0;
+            border-style: solid;
+            border-color: white transparent transparent transparent;
+        }
+
+        .player-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .player-role {
+            font-size: 0.8rem;
+            color: #95a5a6;
+            margin-bottom: 15px;
+        }
+
+        .stone-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            border: 2px solid transparent;
+        }
+        .stone-indicator.black { background: radial-gradient(circle at 30% 30%, #555, #000); border-color: #333; }
+        .stone-indicator.white { background: radial-gradient(circle at 30% 30%, #fff, #ddd); }
+        .stone-indicator.none { background: rgba(255,255,255,0.1); border: 2px dashed #7f8c8d; }
+
+        .panel-controls {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* --- Board Styling --- */
+        .board-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .board-container {
+            padding: 15px;
+            background-color: #e3c48b; /* Fallback color */
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Custom Background Image Layer (The Beach) */
+        .board-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            /* Reference to your beach photo */
+            background-image: url('WechatIMG136.jpg');
+            background-size: cover;
+            background-position: center;
+            
+            /* Visual Effects: Faint and Grey */
+            opacity: 0.4;             /* 40% opacity */
+            filter: grayscale(100%);  /* Black and white */
+            
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #gomoku-board {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            width: 450px;
+            height: 450px;
+            border: 2px solid var(--grid-line-color);
+            background: transparent;
+            position: relative;
+            z-index: 1; /* Above the image */
+        }
+
+        .cell {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Grid lines logic */
+        .cell::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background-color: var(--grid-line-color); z-index: 0; }
+        .cell::after { content: ''; position: absolute; left: 50%; top: 0; height: 100%; width: 1px; background-color: var(--grid-line-color); z-index: 0; }
+
+        .stone {
+            width: 85%;
+            height: 85%;
+            border-radius: 50%;
+            z-index: 1;
+            box-shadow: 2px 2px 4px var(--stone-shadow);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .stone.placed { opacity: 1; transform: scale(1); }
+        .stone.black { background: radial-gradient(circle at 30% 30%, #555, #000); }
+        .stone.white { background: radial-gradient(circle at 30% 30%, #fff, #ddd); border: 1px solid #ccc; }
+        
+        .last-move::after {
+            content: ''; position: absolute; width: 15%; height: 15%; background: #e74c3c;
+            border-radius: 50%; top: 42.5%; left: 42.5%; z-index: 2;
+        }
+
+        /* --- Modals --- */
+        .modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85); display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white; color: #333; padding: 30px; border-radius: 10px;
+            text-align: center; max-width: 400px; width: 90%;
+        }
+        .modal h2 { margin-top: 0; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            #game-layout { flex-direction: column; }
+            .player-panel { width: 90%; flex-direction: row; justify-content: space-between; padding: 10px 20px; }
+            .panel-controls { width: auto; flex-direction: row; }
+            #gomoku-board { width: 90vw; height: 90vw; max-width: 400px; max-height: 400px; }
+            .speech-bubble { top: auto; bottom: 100%; left: 10%; transform: none; margin-bottom: 10px; }
+            .speech-bubble::after { top: 100%; bottom: auto; border-color: white transparent transparent transparent; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOBBY SCREEN -->
+    <div id="lobby-screen" class="screen active-screen">
+        <h1 style="font-size: 3rem; margin-bottom: 20px;"><i class="fas fa-chess-board"></i> Gomoku</h1>
+        <div class="card">
+            <div id="initial-actions">
+                <button class="btn btn-create" onclick="createGame()">
+                    <i class="fas fa-plus-circle"></i> Create New Game
+                </button>
+                <div style="margin: 15px 0; color: #7f8c8d;">- OR -</div>
+                <input type="text" id="join-id-input" placeholder="Paste Game ID Here">
+                <button class="btn btn-join" onclick="joinGame()">
+                    <i class="fas fa-sign-in-alt"></i> Join Game
+                </button>
+                <div style="margin: 15px 0; color: #7f8c8d; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">Solo Modes</div>
+                <button class="btn btn-ai" onclick="startAiGame()">
+                    <i class="fas fa-brain"></i> Play vs Gemini AI ✨
+                </button>
+                <button class="btn btn-local" onclick="startLocalGame()">
+                    <i class="fas fa-user-friends"></i> Practice Locally
+                </button>
+            </div>
+
+            <div id="waiting-area" style="display: none;">
+                <p>Send this ID to your friend:</p>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="my-peer-id" readonly>
+                    <button class="btn btn-copy" onclick="copyToClipboard()" style="width: auto;"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="loader" style="margin-top: 20px;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+                <p>Waiting for opponent...</p>
+                <button class="btn btn-danger" onclick="resetLobby()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="screen">
+        <div id="game-layout">
+            
+            <!-- Player 1 (Left - Xin/Host) -->
+            <div class="player-panel" id="panel-p1">
+                <div style="text-align: center;">
+                    <!-- Custom Avatar for Xin - HARDCODED to ensure it always appears -->
+                    <img src="WechatIMG137.jpg" class="custom-avatar" alt="Xin" onerror="this.src='https://via.placeholder.com/90?text=Xin'">
+                    <div class="player-name" id="p1-name">Xin</div>
+                    <div class="player-role" id="p1-role">Host</div>
+                </div>
+                <div class="stone-indicator" id="p1-stone"></div>
+                <div class="panel-controls">
+                    <button id="btn-dice" class="btn btn-copy" onclick="randomizeColors()" style="display:none;">
+                        <i class="fas fa-dice"></i> Dice
+                    </button>
+                    <button id="btn-undo" class="btn btn-secondary" onclick="requestUndo()">
+                        <i class="fas fa-undo"></i> Undo (<span id="undo-count">4</span>)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Board -->
+            <div class="board-wrapper">
+                <div class="board-container">
+                    <div id="gomoku-board"></div>
+                </div>
+                <div style="margin-top: 15px; font-weight: bold; font-size: 1.2rem; min-height: 24px;">
+                    <span id="game-status-text">Waiting to start...</span>
+                </div>
+            </div>
+
+            <!-- Player 2 (Right - Shan/Opponent/AI) -->
+            <div class="player-panel" id="panel-p2">
+                <div class="speech-bubble" id="ai-bubble">Thinking...</div>
+                <div style="text-align: center;">
+                    <div class="avatar" id="p2-avatar"><i class="fas fa-user-circle"></i></div>
+                    <div class="player-name" id="p2-name">Shan</div>
+                    <div class="player-role" id="p2-role">Guest</div>
+                </div>
+                <div class="stone-indicator" id="p2-stone"></div>
+                <div class="panel-controls">
+                    <!-- Opponent controls usually hidden -->
+                </div>
+            </div>
+
+        </div>
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="btn btn-create" id="btn-rematch" onclick="requestRestart()" style="display:none; width: auto; padding: 10px 30px;">
+                <i class="fas fa-redo"></i> Rematch
+            </button>
+            <button class="btn btn-danger" onclick="leaveGame()" style="width: auto; padding: 10px 30px;">
+                <i class="fas fa-door-open"></i> Leave
+            </button>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div id="approval-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="approval-title">Request</h2>
+            <p id="approval-msg">Opponent wants to...</p>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-create" onclick="handleApproval(true)">Allow</button>
+                <button class="btn btn-danger" onclick="handleApproval(false)">Deny</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GEMINI CONFIG ---
+        const apiKey = "AIzaSyAIBzCT3BlcvYsoG_GLicoeSfHwXchgcAY"; 
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+        // --- GAME CONFIG ---
+        const BOARD_SIZE = 15;
+        const WIN_COUNT = 5;
+        const MAX_UNDOS = 4;
+        
+        // --- STATE ---
+        let peer = null;
+        let conn = null;
+        let myId = null;
+        let isHost = false;
+        let isLocal = false;
+        let isAiGame = false;
+        let connTimeout = null;
+        
+        // Game State
+        let gameState = {
+            board: [],
+            history: [], 
+            turn: 'black',
+            myColor: null, 
+            p1Color: 'black', 
+            active: false,
+            undoCount: MAX_UNDOS,
+            winner: null
+        };
+
+        // --- SOUNDS ---
+        const audio = {
+            place: new Audio('https://rpg.hamsterrepublic.com/wiki-images/2/21/Collision8.ogg'),
+            win: new Audio('https://themushroomkingdom.net/sounds/wav/smw/smw_course_clear.wav'),
+            notify: new Audio('https://rpg.hamsterrepublic.com/wiki-images/d/d7/Strange_Echo_3.ogg')
+        };
+
+        // --- DOM ---
+        const screens = { lobby: document.getElementById('lobby-screen'), game: document.getElementById('game-screen') };
+        const els = {
+            board: document.getElementById('gomoku-board'),
+            status: document.getElementById('game-status-text'),
+            p1Panel: document.getElementById('panel-p1'),
+            p2Panel: document.getElementById('panel-p2'),
+            p1Stone: document.getElementById('p1-stone'),
+            p2Stone: document.getElementById('p2-stone'),
+            p1Name: document.getElementById('p1-name'),
+            p2Name: document.getElementById('p2-name'),
+            p1Role: document.getElementById('p1-role'), 
+            p2Role: document.getElementById('p2-role'), 
+            p2Avatar: document.getElementById('p2-avatar'),
+            aiBubble: document.getElementById('ai-bubble'),
+            btnDice: document.getElementById('btn-dice'),
+            btnUndo: document.getElementById('btn-undo'),
+            btnRematch: document.getElementById('btn-rematch'),
+            undoCount: document.getElementById('undo-count'),
+            approvalModal: document.getElementById('approval-modal'),
+            approvalTitle: document.getElementById('approval-title'),
+            approvalMsg: document.getElementById('approval-msg')
+        };
+
+        // --- INITIALIZATION ---
+        function initBoard() {
+            els.board.innerHTML = '';
+            gameState.board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(null));
+            gameState.history = [];
+            
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+                    cell.onclick = () => handleCellClick(r, c);
+                    
+                    const stone = document.createElement('div');
+                    stone.classList.add('stone');
+                    cell.appendChild(stone);
+                    els.board.appendChild(cell);
+                }
+            }
+        }
+
+        // --- CORE GAMEPLAY ---
+        function startGame(local = false) {
+            isLocal = local;
+            gameState.active = true;
+            gameState.turn = 'black';
+            gameState.winner = null;
+            gameState.undoCount = MAX_UNDOS;
+            
+            if (!gameState.p1Color) gameState.p1Color = 'black'; 
+            
+            if (isLocal) {
+                gameState.myColor = 'both'; 
+                gameState.p1Color = 'black';
+            } else {
+                gameState.myColor = isHost ? gameState.p1Color : (gameState.p1Color === 'black' ? 'white' : 'black');
+            }
+
+            if (isAiGame) {
+                gameState.myColor = 'black';
+                gameState.p1Color = 'black';
+                els.p2Panel.classList.remove('ai-thinking');
+                els.aiBubble.style.display = 'none';
+            }
+
+            els.btnRematch.style.display = 'none';
+            els.btnDice.style.display = 'none'; 
+            
+            updateUI();
+            initBoard();
+            els.undoCount.innerText = gameState.undoCount;
+            els.btnUndo.disabled = false;
+        }
+
+        function handleCellClick(r, c) {
+            if (!gameState.active) return;
+            if (gameState.board[r][c] !== null) return;
+            
+            if (!isLocal && gameState.turn !== gameState.myColor) return;
+            if (isAiGame && gameState.turn === 'white') return; 
+
+            const colorToMove = gameState.turn;
+            makeMove(r, c, colorToMove);
+
+            if (!isLocal && conn) {
+                conn.send({ type: 'move', r, c, color: colorToMove });
+            }
+
+            if (isAiGame && gameState.active && gameState.turn === 'white') {
+                triggerAiTurn();
+            }
+        }
+
+        function makeMove(r, c, color) {
+            gameState.board[r][c] = color;
+            gameState.history.push({r, c, color});
+            
+            audio.place.play().catch(e => {});
+
+            const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+            const stone = cell.querySelector('.stone');
+            stone.classList.add('placed', color);
+            
+            document.querySelectorAll('.last-move').forEach(el => el.classList.remove('last-move'));
+            stone.classList.add('last-move');
+
+            if (checkWin(r, c, color)) {
+                handleWin(color);
+            } else {
+                gameState.turn = (gameState.turn === 'black') ? 'white' : 'black';
+                updateUI();
+            }
+        }
+
+        function handleWin(color) {
+            gameState.active = false;
+            gameState.winner = color;
+            audio.win.play().catch(e => {});
+            
+            let winText = "";
+            if (isLocal) {
+                if (isAiGame) winText = (color === 'black' ? "YOU WIN!" : "AI WINS!");
+                else winText = color.toUpperCase() + " WINS!";
+            } else {
+                winText = (color === gameState.myColor) ? "YOU WIN!" : "OPPONENT WINS!";
+            }
+            els.status.innerText = winText;
+            els.status.style.color = "#f1c40f";
+            
+            els.btnRematch.style.display = 'inline-block';
+            els.btnUndo.disabled = true;
+            els.p2Panel.classList.remove('ai-thinking');
+        }
+
+        // --- GEMINI AI INTEGRATION ---
+        async function triggerAiTurn() {
+            els.p2Panel.classList.add('ai-thinking');
+            els.status.innerText = "Gemini AI is thinking...";
+            els.aiBubble.style.display = 'none';
+
+            let promptHistory = gameState.history.map((m, i) => 
+                `Turn ${i+1} (${m.color}): Row ${m.r}, Col ${m.c}`
+            ).join("\n");
+
+            const systemPrompt = `
+                You are a world-class Gomoku (Five-in-a-Row) Grandmaster playing White. 
+                The board is 15x15 (0-indexed, 0-14).
+                Win if you have 4 in a row. Block opponent if they have 3 or 4.
+                Current History:
+                ${promptHistory}
+                Return strictly JSON: { "row": int, "col": int, "message": "Short witty banter" }
+            `;
+
+            try {
+                const response = await fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
+                });
+
+                if (!response.ok) throw new Error("API Error");
+                const data = await response.json();
+                const text = data.candidates[0].content.parts[0].text;
+                const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const move = JSON.parse(jsonStr);
+
+                if (isValid(move.row, move.col) && gameState.board[move.row][move.col] === null) {
+                    makeMove(move.row, move.col, 'white');
+                    els.aiBubble.innerText = move.message;
+                    els.aiBubble.style.display = 'block';
+                } else {
+                    fallbackRandomMove();
+                }
+            } catch (err) {
+                console.error("Gemini Failure:", err);
+                fallbackRandomMove();
+                els.aiBubble.innerText = "*Circuits overheating*";
+                els.aiBubble.style.display = 'block';
+            } finally {
+                els.p2Panel.classList.remove('ai-thinking');
+            }
+        }
+
+        function fallbackRandomMove() {
+            let r, c, attempts = 0;
+            do {
+                r = Math.floor(Math.random() * BOARD_SIZE);
+                c = Math.floor(Math.random() * BOARD_SIZE);
+                attempts++;
+            } while (gameState.board[r][c] !== null && attempts < 100);
+            if (gameState.board[r][c] === null) makeMove(r, c, 'white');
+        }
+
+        // --- UNDO SYSTEM ---
+        function requestUndo() {
+            if (!gameState.active && !gameState.winner) return;
+            if (gameState.undoCount <= 0) return alert("No undos left!");
+            if (gameState.history.length === 0) return;
+            
+            if (isAiGame) {
+                if (gameState.turn === 'white') return alert("Wait for AI to finish!");
+                performUndo(); performUndo(); 
+                gameState.undoCount--; updateUI();
+                return;
+            }
+
+            if (isLocal) { performUndo(); return; }
+
+            els.btnUndo.innerText = "Waiting...";
+            els.btnUndo.disabled = true;
+            conn.send({ type: 'undo_request' });
+        }
+
+        function performUndo() {
+            if (gameState.history.length === 0) return;
+            const lastMove = gameState.history.pop();
+            gameState.board[lastMove.r][lastMove.c] = null;
+            
+            const cell = document.querySelector(`.cell[data-r="${lastMove.r}"][data-c="${lastMove.c}"]`);
+            const stone = cell.querySelector('.stone');
+            stone.className = 'stone'; 
+            
+            gameState.turn = lastMove.color;
+            gameState.active = true; 
+            gameState.winner = null;
+            els.btnRematch.style.display = 'none';
+
+            document.querySelectorAll('.last-move').forEach(el => el.classList.remove('last-move'));
+            if (gameState.history.length > 0) {
+                const prev = gameState.history[gameState.history.length - 1];
+                const prevCell = document.querySelector(`.cell[data-r="${prev.r}"][data-c="${prev.c}"]`);
+                if(prevCell) prevCell.querySelector('.stone').classList.add('last-move');
+            }
+            updateUI();
+        }
+
+        // --- DICE / RANDOMIZE ---
+        function randomizeColors() {
+            const p1IsBlack = Math.random() < 0.5;
+            const p1Color = p1IsBlack ? 'black' : 'white';
+            conn.send({ type: 'setup_colors', p1Color: p1Color });
+            applyColors(p1Color);
+        }
+
+        function applyColors(p1Color) {
+            gameState.p1Color = p1Color;
+            if (isHost) {
+                gameState.myColor = p1Color;
+            } else {
+                gameState.myColor = (p1Color === 'black' ? 'white' : 'black');
+            }
+            updateUI();
+        }
+
+        // --- UI UPDATES ---
+        function updateUI() {
+            const p2Color = gameState.p1Color === 'black' ? 'white' : 'black';
+            
+            els.p1Stone.className = `stone-indicator ${gameState.p1Color}`;
+            els.p2Stone.className = `stone-indicator ${p2Color}`;
+            
+            if (gameState.turn === gameState.p1Color) {
+                els.p1Panel.classList.add('active-turn');
+                els.p2Panel.classList.remove('active-turn');
+            } else {
+                els.p1Panel.classList.remove('active-turn');
+                els.p2Panel.classList.add('active-turn');
+            }
+
+            if (!gameState.active && !gameState.winner) {
+                 els.status.innerText = "Ready to Start";
+            } else if (gameState.winner) {
+                 // Handled in handleWin
+            } else {
+                if (isAiGame) {
+                     els.status.innerText = gameState.turn === 'black' ? "YOUR TURN" : "AI IS THINKING...";
+                     els.status.style.color = gameState.turn === 'black' ? "#2ecc71" : "#8e44ad";
+                } else if (isLocal) {
+                    els.status.innerText = `${gameState.turn.toUpperCase()}'S TURN`;
+                    els.status.style.color = "white";
+                } else {
+                    const isMyTurn = gameState.turn === gameState.myColor;
+                    els.status.innerText = isMyTurn ? "YOUR TURN" : "OPPONENT'S TURN";
+                    els.status.style.color = isMyTurn ? "#2ecc71" : "#e74c3c";
+                }
+            }
+            els.undoCount.innerText = gameState.undoCount;
+        }
+
+        // --- NETWORK & PEERJS ---
+        function initPeer(callback) {
+            if (peer) peer.destroy();
+            peer = new Peer(null, { debug: 1 });
+            peer.on('open', (id) => {
+                myId = id;
+                if (callback) callback(id);
+            });
+            peer.on('connection', (c) => {
+                if(conn) { c.close(); return; } 
+                setupConnection(c);
+            });
+            peer.on('error', (err) => {
+                const btn = document.querySelector('.btn-join');
+                if (btn && btn.disabled) {
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Join Game';
+                    btn.disabled = false;
+                    clearTimeout(connTimeout);
+                    if (err.type === 'peer-unavailable') {
+                        alert("Game ID not found. Check the code and try again.");
+                    } else {
+                        alert("Connection Error: " + err.type);
+                    }
+                    return;
+                }
+                alert("Connection Error: " + err.type);
+                resetLobby();
+            });
+        }
+
+        function createGame() {
+            isHost = true;
+            isLocal = false;
+            isAiGame = false;
+            
+            // Host is ALWAYS Xin
+            els.p1Name.innerText = "Xin";
+            // Opponent is Shan
+            els.p2Name.innerText = "Shan";
+            els.p2Role.innerText = "Guest";
+            els.p2Avatar.innerHTML = '<i class="fas fa-user-circle"></i>';
+            els.btnDice.style.display = 'block'; 
+            
+            document.getElementById('initial-actions').style.display = 'none';
+            document.getElementById('waiting-area').style.display = 'block';
+            
+            initPeer((id) => {
+                document.getElementById('my-peer-id').value = id;
+            });
+        }
+
+        function joinGame() {
+            isHost = false;
+            isLocal = false;
+            isAiGame = false;
+            
+            // Host (Left) is Xin
+            els.p1Name.innerText = "Xin";
+            // You (Right) are Shan
+            els.p2Name.innerText = "Shan";
+            els.p2Role.innerText = "You";
+            els.p2Avatar.innerHTML = '<i class="fas fa-user-circle"></i>';
+            els.btnDice.style.display = 'none'; 
+
+            const hostId = document.getElementById('join-id-input').value.trim();
+            if(!hostId) return alert("Enter ID");
+            
+            const btn = document.querySelector('.btn-join');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
+            btn.disabled = true;
+
+            connTimeout = setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                alert("Connection timed out. Please try again.");
+            }, 10000); 
+
+            initPeer((id) => {
+                const c = peer.connect(hostId);
+                setupConnection(c);
+            });
+        }
+
+        function startLocalGame() {
+            isLocal = true;
+            isHost = true; 
+            isAiGame = false;
+            
+            els.p1Name.innerText = "Xin";
+            els.p2Name.innerText = "Shan";
+            els.p2Role.innerText = "Local";
+            els.p2Avatar.innerHTML = '<i class="fas fa-user-circle"></i>';
+            
+            screens.lobby.classList.remove('active-screen');
+            screens.game.classList.add('active-screen');
+            
+            startGame(true);
+        }
+
+        function startAiGame() {
+            isLocal = true; 
+            isHost = true;
+            isAiGame = true;
+            
+            els.p1Name.innerText = "Xin";
+            els.p2Name.innerText = "Gemini AI ✨";
+            els.p2Role.innerText = "Grandmaster";
+            els.p2Avatar.innerHTML = '<i class="fas fa-brain"></i>';
+            
+            screens.lobby.classList.remove('active-screen');
+            screens.game.classList.add('active-screen');
+            
+            startGame(true);
+        }
+
+        function setupConnection(c) {
+            conn = c;
+            conn.on('open', () => {
+                console.log("Connected");
+                if (connTimeout) clearTimeout(connTimeout);
+                
+                screens.lobby.classList.remove('active-screen');
+                screens.game.classList.add('active-screen');
+                if (isHost) {
+                    applyColors('black');
+                    conn.send({ type: 'setup_colors', p1Color: 'black' });
+                    startGame();
+                }
+            });
+            conn.on('data', (data) => handleData(data));
+            conn.on('error', (err) => { alert("Data Connection Error"); resetLobby(); });
+            conn.on('close', () => { alert("Opponent Disconnected"); resetLobby(); });
+        }
+
+        function handleData(data) {
+            switch(data.type) {
+                case 'move': makeMove(data.r, data.c, data.color); break;
+                case 'setup_colors': applyColors(data.p1Color); startGame(); break;
+                case 'undo_request': showApprovalModal("Undo Request", "Opponent wants to undo.", 'undo'); audio.notify.play().catch(()=>{}); break;
+                case 'undo_approve': performUndo(); gameState.undoCount--; updateUI(); els.btnUndo.disabled = false; break;
+                case 'undo_reject': alert("Undo Denied"); els.btnUndo.disabled = false; break;
+                case 'restart_request': showApprovalModal("Rematch?", "Opponent wants to play again.", 'restart'); audio.notify.play().catch(()=>{}); break;
+                case 'restart_approve': startGame(); break;
+            }
+        }
+
+        // --- APPROVAL MODAL ---
+        let currentApprovalType = null;
+        function showApprovalModal(title, msg, type) {
+            els.approvalTitle.innerText = title;
+            els.approvalMsg.innerText = msg;
+            els.approvalModal.style.display = 'flex';
+            currentApprovalType = type;
+        }
+
+        function handleApproval(allowed) {
+            els.approvalModal.style.display = 'none';
+            if (currentApprovalType === 'undo') {
+                conn.send({ type: allowed ? 'undo_approve' : 'undo_reject' });
+                if (allowed) performUndo();
+            } else if (currentApprovalType === 'restart') {
+                if (allowed) {
+                    conn.send({ type: 'restart_approve' });
+                    startGame();
+                }
+            }
+        }
+
+        function requestRestart() {
+            if (isAiGame || isLocal) {
+                startGame(true);
+            } else {
+                conn.send({ type: 'restart_request' });
+                els.btnRematch.innerText = "Request Sent...";
+                els.btnRematch.disabled = true;
+            }
+        }
+
+        // --- UTILS ---
+        function checkWin(r, c, color) {
+            const dirs = [[0,1], [1,0], [1,1], [1,-1]];
+            for (let [dr, dc] of dirs) {
+                let count = 1;
+                for (let i=1; i<5; i++) {
+                    if (isValid(r+dr*i, c+dc*i) && gameState.board[r+dr*i][c+dc*i] === color) count++; else break;
+                }
+                for (let i=1; i<5; i++) {
+                    if (isValid(r-dr*i, c-dc*i) && gameState.board[r-dr*i][c-dc*i] === color) count++; else break;
+                }
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+        function isValid(r, c) { return r>=0 && r<BOARD_SIZE && c>=0 && c<BOARD_SIZE; }
+
+        function copyToClipboard() {
+            const el = document.getElementById('my-peer-id');
+            el.select();
+            document.execCommand('copy');
+        }
+
+        function leaveGame() {
+            if(conn) conn.close();
+            if(peer) peer.destroy();
+            location.reload();
+        }
+        
+        function resetLobby() {
+            if(peer) peer.destroy();
+            location.reload();
+        }
+
+        initBoard();
+    </script>
+</body>
+</html>
