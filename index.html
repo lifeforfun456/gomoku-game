@@ -518,11 +518,16 @@
             if (!isLocal && gameState.turn !== gameState.myColor) return;
             if (isAiGame && gameState.turn === 'white') return; // AI's turn
 
-            makeMove(r, c, gameState.turn);
+            // CRITICAL FIX: Capture turn color BEFORE making the move locally,
+            // because makeMove() will flip the turn.
+            const colorToMove = gameState.turn;
+
+            makeMove(r, c, colorToMove);
 
             // Side Effects
             if (!isLocal && conn) {
-                conn.send({ type: 'move', r, c, color: gameState.turn });
+                // FIX: Send the color we just played, not the *next* turn color
+                conn.send({ type: 'move', r, c, color: colorToMove });
             }
 
             // Trigger AI
@@ -785,7 +790,6 @@
                 setupConnection(c);
             });
             peer.on('error', (err) => {
-                // If it's a join attempt (peer-unavailable), handle gracefully
                 const btn = document.querySelector('.btn-join');
                 if (btn && btn.disabled) {
                     btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Join Game';
@@ -796,7 +800,7 @@
                     } else {
                         alert("Connection Error: " + err.type);
                     }
-                    return; // Don't reset lobby entirely on just a failed join
+                    return;
                 }
                 
                 alert("Connection Error: " + err.type);
@@ -811,7 +815,7 @@
             els.p1Name.innerText = "You (Host)";
             els.p2Name.innerText = "Opponent";
             els.p2Role.innerText = "Guest";
-            els.p2Avatar.innerHTML = '<i class="fas fa-robot"></i>';
+            els.p2Avatar.innerHTML = '<i class="fas fa-user"></i>';
             els.btnDice.style.display = 'block'; 
             
             document.getElementById('initial-actions').style.display = 'none';
@@ -835,18 +839,16 @@
             const hostId = document.getElementById('join-id-input').value.trim();
             if(!hostId) return alert("Enter ID");
             
-            // Add Loading State
             const btn = document.querySelector('.btn-join');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             btn.disabled = true;
 
-            // Set Timeout for connection
             connTimeout = setTimeout(() => {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
                 alert("Connection timed out. Please try again.");
-            }, 10000); // 10 seconds
+            }, 10000); 
 
             initPeer((id) => {
                 const c = peer.connect(hostId);
@@ -890,13 +892,14 @@
             
             conn.on('open', () => {
                 console.log("Connected");
-                // Clear timeout if exists
                 if (connTimeout) clearTimeout(connTimeout);
                 
                 screens.lobby.classList.remove('active-screen');
                 screens.game.classList.add('active-screen');
                 if (isHost) {
                     applyColors('black');
+                    // FIX: Tell guest the game has started so their state syncs
+                    conn.send({ type: 'setup_colors', p1Color: 'black' });
                     startGame();
                 }
             });
