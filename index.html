@@ -1,979 +1,956 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2822
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;}
-{\colortbl;\red255\green255\blue255;\red109\green109\blue109;\red236\green241\blue247;\red251\green0\blue7;
-\red0\green0\blue0;\red42\green42\blue42;\red107\green0\blue1;\red0\green0\blue255;\red77\green80\blue85;
-\red9\green60\blue148;\red19\green118\blue70;\red24\green112\blue43;\red111\green14\blue195;\red14\green110\blue109;
-\red164\green69\blue11;}
-{\*\expandedcolortbl;;\cssrgb\c50196\c50196\c50196;\cssrgb\c94118\c95686\c97647;\cssrgb\c100000\c0\c0;
-\cssrgb\c0\c0\c0;\cssrgb\c21961\c21961\c21961;\cssrgb\c50196\c0\c0;\cssrgb\c0\c0\c100000;\cssrgb\c37255\c38824\c40784;
-\cssrgb\c1569\c31765\c64706;\cssrgb\c3529\c52549\c34510;\cssrgb\c9412\c50196\c21961;\cssrgb\c51765\c18824\c80784;\cssrgb\c0\c50196\c50196;
-\cssrgb\c70980\c34902\c3137;}
-\margl1440\margr1440\vieww11520\viewh8400\viewkind0
-\deftab720
-\pard\pardeftab720\partightenfactor0
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Gomoku</title>
+    <!-- PeerJS for WebRTC -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --wood-primary: #e3c48b;
+            --wood-dark: #8b5a2b;
+            --stone-shadow: rgba(0, 0, 0, 0.4);
+            --bg-color: #2c3e50;
+            --panel-bg: rgba(0, 0, 0, 0.3);
+            --ai-color: #8e44ad;
+        }
 
-\f0\fs28 \cf2 \cb3 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 <!DOCTYPE\cf4 \strokec4  html\cf2 \strokec2 >\cf0 \cb1 \strokec5 \
-\pard\pardeftab720\partightenfactor0
-\cf6 \cb3 \strokec6 <\cf7 \strokec7 html\cf0 \strokec5  \cf4 \strokec4 lang\cf6 \strokec6 =\cf8 \strokec8 "en"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cf6 \cb3 \strokec6 <\cf7 \strokec7 head\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\pard\pardeftab720\partightenfactor0
-\cf0 \cb3     \cf6 \strokec6 <\cf7 \strokec7 meta\cf0 \strokec5  \cf4 \strokec4 charset\cf6 \strokec6 =\cf8 \strokec8 "UTF-8"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 <\cf7 \strokec7 meta\cf0 \strokec5  \cf4 \strokec4 name\cf6 \strokec6 =\cf8 \strokec8 "viewport"\cf0 \strokec5  \cf4 \strokec4 content\cf6 \strokec6 =\cf8 \strokec8 "width=device-width, initial-scale=1.0"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 <\cf7 \strokec7 title\cf6 \strokec6 >\cf0 \strokec5 Multiplayer Gomoku\cf6 \strokec6 </\cf7 \strokec7 title\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3     \cf9 \strokec9 <!-- PeerJS for WebRTC -->\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 <\cf7 \strokec7 script\cf0 \strokec5  \cf4 \strokec4 src\cf6 \strokec6 =\cf8 \strokec8 "https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"\cf6 \strokec6 ></\cf7 \strokec7 script\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3     \cf9 \strokec9 <!-- Font Awesome for Icons -->\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 <\cf7 \strokec7 link\cf0 \strokec5  \cf4 \strokec4 rel\cf6 \strokec6 =\cf8 \strokec8 "stylesheet"\cf0 \strokec5  \cf4 \strokec4 href\cf6 \strokec6 =\cf8 \strokec8 "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 <\cf7 \strokec7 style\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3         \cf7 \strokec7 :root\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 --wood-primary:\cf0 \strokec5  \cf10 \strokec10 #e3c48b\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 --wood-dark:\cf0 \strokec5  \cf10 \strokec10 #8b5a2b\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 --stone-shadow:\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 0\cf0 \strokec5 , \cf11 \strokec11 0\cf0 \strokec5 , \cf11 \strokec11 0\cf0 \strokec5 , \cf11 \strokec11 0.4\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 --bg-color:\cf0 \strokec5  \cf10 \strokec10 #2c3e50\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 --panel-bg:\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 0\cf0 \strokec5 , \cf11 \strokec11 0\cf0 \strokec5 , \cf11 \strokec11 0\cf0 \strokec5 , \cf11 \strokec11 0.3\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 --ai-color:\cf0 \strokec5  \cf10 \strokec10 #8e44ad\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 body\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 font-family:\cf0 \strokec5  \cf12 \strokec12 'Segoe UI'\cf0 \strokec5 , \cf10 \strokec10 Tahoma\cf0 \strokec5 , \cf10 \strokec10 Geneva\cf0 \strokec5 , \cf10 \strokec10 Verdana\cf0 \strokec5 , \cf10 \strokec10 sans-serif\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 margin:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 padding:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 flex\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 flex-direction:\cf0 \strokec5  \cf10 \strokec10 column\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 align-items:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 justify-content:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 min-height:\cf0 \strokec5  \cf11 \strokec11 100vh\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 background-color:\cf0 \strokec5  \cf10 \strokec10 var(--bg-color)\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 color:\cf0 \strokec5  \cf10 \strokec10 white\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 overflow:\cf0 \strokec5  \cf10 \strokec10 hidden\cf0 \strokec5 ; \cf9 \strokec9 /* Prevent scrolling during play */\cf0 \cb1 \strokec5 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 /* --- Screens --- */\cf0 \cb1 \strokec5 \
-\cb3         \cf7 \strokec7 .screen\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 none\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 flex-direction:\cf0 \strokec5  \cf10 \strokec10 column\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 align-items:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 100%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 height:\cf0 \strokec5  \cf11 \strokec11 100%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 justify-content:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .active-screen\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 flex\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 /* --- Lobby Styles --- */\cf0 \cb1 \strokec5 \
-\cb3         \cf7 \strokec7 .card\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 255\cf0 \strokec5 , \cf11 \strokec11 255\cf0 \strokec5 , \cf11 \strokec11 255\cf0 \strokec5 , \cf11 \strokec11 0.1\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 padding:\cf0 \strokec5  \cf11 \strokec11 2rem\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-radius:\cf0 \strokec5  \cf11 \strokec11 12px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 backdrop-filter:\cf0 \strokec5  \cf10 \strokec10 blur(\cf11 \strokec11 10px\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 box-shadow:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 4px\cf0 \strokec5  \cf11 \strokec11 6px\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0.1\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 text-align:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 90%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 max-width:\cf0 \strokec5  \cf11 \strokec11 400px\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 input\cf0 \strokec5 [\cf10 \strokec10 type\cf0 \strokec5 =\cf12 \strokec12 "text"\cf0 \strokec5 ] \{\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 100%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 padding:\cf0 \strokec5  \cf11 \strokec11 12px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 margin:\cf0 \strokec5  \cf11 \strokec11 10px\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border:\cf0 \strokec5  \cf10 \strokec10 none\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-radius:\cf0 \strokec5  \cf11 \strokec11 6px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 font-size:\cf0 \strokec5  \cf11 \strokec11 1rem\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 text-align:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 255\cf0 \strokec5 , \cf11 \strokec11 255\cf0 \strokec5 , \cf11 \strokec11 255\cf0 \strokec5 , \cf11 \strokec11 0.9\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 box-sizing:\cf0 \strokec5  \cf10 \strokec10 border-box\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .btn\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 100%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 padding:\cf0 \strokec5  \cf11 \strokec11 12px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 margin:\cf0 \strokec5  \cf11 \strokec11 8px\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border:\cf0 \strokec5  \cf10 \strokec10 none\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-radius:\cf0 \strokec5  \cf11 \strokec11 6px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 font-size:\cf0 \strokec5  \cf11 \strokec11 1rem\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 cursor:\cf0 \strokec5  \cf10 \strokec10 pointer\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 font-weight:\cf0 \strokec5  \cf10 \strokec10 bold\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 transition:\cf0 \strokec5  \cf10 \strokec10 transform\cf0 \strokec5  \cf11 \strokec11 0.1s\cf0 \strokec5 , \cf10 \strokec10 background-color\cf0 \strokec5  \cf11 \strokec11 0.2s\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 color:\cf0 \strokec5  \cf10 \strokec10 white\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 flex\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 align-items:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 justify-content:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 gap:\cf0 \strokec5  \cf11 \strokec11 8px\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\cb3         \cf7 \strokec7 .btn:active\cf0 \strokec5  \{ \cf4 \strokec4 transform:\cf0 \strokec5  \cf10 \strokec10 scale(\cf11 \strokec11 0.98\cf10 \strokec10 )\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .btn:disabled\cf0 \strokec5  \{ \cf4 \strokec4 opacity:\cf0 \strokec5  \cf11 \strokec11 0.6\cf0 \strokec5 ; \cf4 \strokec4 cursor:\cf0 \strokec5  \cf10 \strokec10 not-allowed\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cb1 \
-\cb3         \cf7 \strokec7 .btn-create\cf0 \strokec5  \{ \cf4 \strokec4 background-color:\cf0 \strokec5  \cf10 \strokec10 #27ae60\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .btn-join\cf0 \strokec5  \{ \cf4 \strokec4 background-color:\cf0 \strokec5  \cf10 \strokec10 #2980b9\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .btn-copy\cf0 \strokec5  \{ \cf4 \strokec4 background-color:\cf0 \strokec5  \cf10 \strokec10 #f39c12\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .btn-local\cf0 \strokec5  \{ \cf4 \strokec4 background-color:\cf0 \strokec5  \cf10 \strokec10 #7f8c8d\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .btn-ai\cf0 \strokec5  \{ \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 linear-gradient(\cf11 \strokec11 45deg\cf0 \strokec5 , \cf10 \strokec10 #8e44ad\cf0 \strokec5 , \cf10 \strokec10 #3498db)\cf0 \strokec5 ; \cf4 \strokec4 border:\cf0 \strokec5  \cf11 \strokec11 1px\cf0 \strokec5  \cf10 \strokec10 solid\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 255\cf0 \strokec5 ,\cf11 \strokec11 255\cf0 \strokec5 ,\cf11 \strokec11 255\cf0 \strokec5 ,\cf11 \strokec11 0.2\cf10 \strokec10 )\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .btn-ai:hover\cf0 \strokec5  \{ \cf4 \strokec4 filter:\cf0 \strokec5  \cf10 \strokec10 brightness(\cf11 \strokec11 1.2\cf10 \strokec10 )\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .btn-danger\cf0 \strokec5  \{ \cf4 \strokec4 background-color:\cf0 \strokec5  \cf10 \strokec10 #c0392b\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .btn-secondary\cf0 \strokec5  \{ \cf4 \strokec4 background-color:\cf0 \strokec5  \cf10 \strokec10 #7f8c8d\cf0 \strokec5 ; \}\cb1 \
-\
-\cb3         \cf9 \strokec9 /* --- Game Layout --- */\cf0 \cb1 \strokec5 \
-\cb3         \cf7 \strokec7 #game-layout\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 flex\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 flex-direction:\cf0 \strokec5  \cf10 \strokec10 row\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 align-items:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 justify-content:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 gap:\cf0 \strokec5  \cf11 \strokec11 20px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 100%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 max-width:\cf0 \strokec5  \cf11 \strokec11 1200px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 padding:\cf0 \strokec5  \cf11 \strokec11 20px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 box-sizing:\cf0 \strokec5  \cf10 \strokec10 border-box\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .player-panel\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 var(--panel-bg)\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 padding:\cf0 \strokec5  \cf11 \strokec11 20px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-radius:\cf0 \strokec5  \cf11 \strokec11 15px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 200px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 flex\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 flex-direction:\cf0 \strokec5  \cf10 \strokec10 column\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 align-items:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 transition:\cf0 \strokec5  \cf10 \strokec10 all\cf0 \strokec5  \cf11 \strokec11 0.3s\cf0 \strokec5  \cf10 \strokec10 ease\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 position:\cf0 \strokec5  \cf10 \strokec10 relative\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .player-panel.active-turn\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 box-shadow:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 15px\cf0 \strokec5  \cf10 \strokec10 #f1c40f\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border:\cf0 \strokec5  \cf11 \strokec11 2px\cf0 \strokec5  \cf10 \strokec10 solid\cf0 \strokec5  \cf10 \strokec10 #f1c40f\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .avatar\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 font-size:\cf0 \strokec5  \cf11 \strokec11 3rem\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 margin-bottom:\cf0 \strokec5  \cf11 \strokec11 10px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 color:\cf0 \strokec5  \cf10 \strokec10 #bdc3c7\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 position:\cf0 \strokec5  \cf10 \strokec10 relative\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .ai-thinking\cf0 \strokec5  \cf7 \strokec7 .avatar\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 animation:\cf0 \strokec5  \cf10 \strokec10 pulse\cf0 \strokec5  \cf11 \strokec11 1.5s\cf0 \strokec5  \cf10 \strokec10 infinite\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 color:\cf0 \strokec5  \cf10 \strokec10 var(--ai-color)\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 @keyframes\cf0 \strokec5  \cf10 \strokec10 pulse\cf0 \strokec5  \{\cb1 \
-\cb3             \cf11 \strokec11 0%\cf0 \strokec5  \{ \cf4 \strokec4 transform:\cf0 \strokec5  \cf10 \strokec10 scale(\cf11 \strokec11 1\cf10 \strokec10 )\cf0 \strokec5 ; \cf4 \strokec4 text-shadow:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 142\cf0 \strokec5 , \cf11 \strokec11 68\cf0 \strokec5 , \cf11 \strokec11 173\cf0 \strokec5 , \cf11 \strokec11 0.4\cf10 \strokec10 )\cf0 \strokec5 ; \}\cb1 \
-\cb3             \cf11 \strokec11 50%\cf0 \strokec5  \{ \cf4 \strokec4 transform:\cf0 \strokec5  \cf10 \strokec10 scale(\cf11 \strokec11 1.1\cf10 \strokec10 )\cf0 \strokec5 ; \cf4 \strokec4 text-shadow:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 20px\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 142\cf0 \strokec5 , \cf11 \strokec11 68\cf0 \strokec5 , \cf11 \strokec11 173\cf0 \strokec5 , \cf11 \strokec11 0.8\cf10 \strokec10 )\cf0 \strokec5 ; \}\cb1 \
-\cb3             \cf11 \strokec11 100%\cf0 \strokec5  \{ \cf4 \strokec4 transform:\cf0 \strokec5  \cf10 \strokec10 scale(\cf11 \strokec11 1\cf10 \strokec10 )\cf0 \strokec5 ; \cf4 \strokec4 text-shadow:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 142\cf0 \strokec5 , \cf11 \strokec11 68\cf0 \strokec5 , \cf11 \strokec11 173\cf0 \strokec5 , \cf11 \strokec11 0.4\cf10 \strokec10 )\cf0 \strokec5 ; \}\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 /* Chat/Speech Bubble for AI */\cf0 \cb1 \strokec5 \
-\cb3         \cf7 \strokec7 .speech-bubble\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 position:\cf0 \strokec5  \cf10 \strokec10 absolute\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 top:\cf0 \strokec5  \cf11 \strokec11 -60px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 white\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 color:\cf0 \strokec5  \cf10 \strokec10 #333\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 padding:\cf0 \strokec5  \cf11 \strokec11 10px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-radius:\cf0 \strokec5  \cf11 \strokec11 10px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 font-size:\cf0 \strokec5  \cf11 \strokec11 0.85rem\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 180px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 box-shadow:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 2px\cf0 \strokec5  \cf11 \strokec11 10px\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0.3\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 none\cf0 \strokec5 ; \cf9 \strokec9 /* Hidden by default */\cf0 \cb1 \strokec5 \
-\cb3             \cf4 \strokec4 z-index:\cf0 \strokec5  \cf11 \strokec11 20\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 pointer-events:\cf0 \strokec5  \cf10 \strokec10 none\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\cb3         \cf7 \strokec7 .speech-bubble::after\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 content:\cf0 \strokec5  \cf12 \strokec12 ''\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 position:\cf0 \strokec5  \cf10 \strokec10 absolute\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 bottom:\cf0 \strokec5  \cf11 \strokec11 -8px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 left:\cf0 \strokec5  \cf11 \strokec11 50%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 transform:\cf0 \strokec5  \cf10 \strokec10 translateX(\cf11 \strokec11 -50%\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-width:\cf0 \strokec5  \cf11 \strokec11 8px\cf0 \strokec5  \cf11 \strokec11 8px\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-style:\cf0 \strokec5  \cf10 \strokec10 solid\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-color:\cf0 \strokec5  \cf10 \strokec10 white\cf0 \strokec5  \cf10 \strokec10 transparent\cf0 \strokec5  \cf10 \strokec10 transparent\cf0 \strokec5  \cf10 \strokec10 transparent\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .player-name\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 font-size:\cf0 \strokec5  \cf11 \strokec11 1.2rem\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 font-weight:\cf0 \strokec5  \cf10 \strokec10 bold\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 margin-bottom:\cf0 \strokec5  \cf11 \strokec11 5px\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .player-role\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 font-size:\cf0 \strokec5  \cf11 \strokec11 0.8rem\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 color:\cf0 \strokec5  \cf10 \strokec10 #95a5a6\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 margin-bottom:\cf0 \strokec5  \cf11 \strokec11 15px\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .stone-indicator\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 40px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 height:\cf0 \strokec5  \cf11 \strokec11 40px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-radius:\cf0 \strokec5  \cf11 \strokec11 50%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 margin-bottom:\cf0 \strokec5  \cf11 \strokec11 15px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 box-shadow:\cf0 \strokec5  \cf11 \strokec11 2px\cf0 \strokec5  \cf11 \strokec11 2px\cf0 \strokec5  \cf11 \strokec11 5px\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0.5\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border:\cf0 \strokec5  \cf11 \strokec11 2px\cf0 \strokec5  \cf10 \strokec10 solid\cf0 \strokec5  \cf10 \strokec10 transparent\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\cb3         \cf7 \strokec7 .stone-indicator.black\cf0 \strokec5  \{ \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 radial-gradient(circle\cf0 \strokec5  \cf10 \strokec10 at\cf0 \strokec5  \cf11 \strokec11 30%\cf0 \strokec5  \cf11 \strokec11 30%\cf0 \strokec5 , \cf10 \strokec10 #555\cf0 \strokec5 , \cf10 \strokec10 #000)\cf0 \strokec5 ; \cf4 \strokec4 border-color:\cf0 \strokec5  \cf10 \strokec10 #333\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .stone-indicator.white\cf0 \strokec5  \{ \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 radial-gradient(circle\cf0 \strokec5  \cf10 \strokec10 at\cf0 \strokec5  \cf11 \strokec11 30%\cf0 \strokec5  \cf11 \strokec11 30%\cf0 \strokec5 , \cf10 \strokec10 #fff\cf0 \strokec5 , \cf10 \strokec10 #ddd)\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .stone-indicator.none\cf0 \strokec5  \{ \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 255\cf0 \strokec5 ,\cf11 \strokec11 255\cf0 \strokec5 ,\cf11 \strokec11 255\cf0 \strokec5 ,\cf11 \strokec11 0.1\cf10 \strokec10 )\cf0 \strokec5 ; \cf4 \strokec4 border:\cf0 \strokec5  \cf11 \strokec11 2px\cf0 \strokec5  \cf10 \strokec10 dashed\cf0 \strokec5  \cf10 \strokec10 #7f8c8d\cf0 \strokec5 ; \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .panel-controls\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 100%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 flex\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 flex-direction:\cf0 \strokec5  \cf10 \strokec10 column\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 gap:\cf0 \strokec5  \cf11 \strokec11 10px\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 /* --- Board --- */\cf0 \cb1 \strokec5 \
-\cb3         \cf7 \strokec7 .board-wrapper\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 flex\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 flex-direction:\cf0 \strokec5  \cf10 \strokec10 column\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 align-items:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .board-container\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 padding:\cf0 \strokec5  \cf11 \strokec11 15px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 background-color:\cf0 \strokec5  \cf10 \strokec10 var(--wood-primary)\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-radius:\cf0 \strokec5  \cf11 \strokec11 4px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 box-shadow:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5  \cf11 \strokec11 10px\cf0 \strokec5  \cf11 \strokec11 30px\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0.5\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 background-image:\cf0 \strokec5  \cf10 \strokec10 linear-gradient(\cf11 \strokec11 90deg\cf0 \strokec5 , \cf10 \strokec10 rgba(\cf11 \strokec11 139\cf0 \strokec5 ,\cf11 \strokec11 90\cf0 \strokec5 ,\cf11 \strokec11 43\cf0 \strokec5 ,\cf11 \strokec11 0.1\cf10 \strokec10 )\cf0 \strokec5  \cf11 \strokec11 0%\cf0 \strokec5 , \cf10 \strokec10 rgba(\cf11 \strokec11 139\cf0 \strokec5 ,\cf11 \strokec11 90\cf0 \strokec5 ,\cf11 \strokec11 43\cf0 \strokec5 ,\cf11 \strokec11 0\cf10 \strokec10 )\cf0 \strokec5  \cf11 \strokec11 50%\cf0 \strokec5 , \cf10 \strokec10 rgba(\cf11 \strokec11 139\cf0 \strokec5 ,\cf11 \strokec11 90\cf0 \strokec5 ,\cf11 \strokec11 43\cf0 \strokec5 ,\cf11 \strokec11 0.1\cf10 \strokec10 )\cf0 \strokec5  \cf11 \strokec11 100%\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 #gomoku-board\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 grid\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 grid-template-columns:\cf0 \strokec5  \cf10 \strokec10 repeat(\cf11 \strokec11 15\cf0 \strokec5 , \cf11 \strokec11 1fr\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 grid-template-rows:\cf0 \strokec5  \cf10 \strokec10 repeat(\cf11 \strokec11 15\cf0 \strokec5 , \cf11 \strokec11 1fr\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 450px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 height:\cf0 \strokec5  \cf11 \strokec11 450px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border:\cf0 \strokec5  \cf11 \strokec11 2px\cf0 \strokec5  \cf10 \strokec10 solid\cf0 \strokec5  \cf10 \strokec10 var(--wood-dark)\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 transparent\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .cell\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 position:\cf0 \strokec5  \cf10 \strokec10 relative\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 cursor:\cf0 \strokec5  \cf10 \strokec10 pointer\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 flex\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 align-items:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 justify-content:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .cell::before\cf0 \strokec5  \{ \cf4 \strokec4 content:\cf0 \strokec5  \cf12 \strokec12 ''\cf0 \strokec5 ; \cf4 \strokec4 position:\cf0 \strokec5  \cf10 \strokec10 absolute\cf0 \strokec5 ; \cf4 \strokec4 top:\cf0 \strokec5  \cf11 \strokec11 50%\cf0 \strokec5 ; \cf4 \strokec4 left:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ; \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 100%\cf0 \strokec5 ; \cf4 \strokec4 height:\cf0 \strokec5  \cf11 \strokec11 1px\cf0 \strokec5 ; \cf4 \strokec4 background-color:\cf0 \strokec5  \cf10 \strokec10 var(--wood-dark)\cf0 \strokec5 ; \cf4 \strokec4 z-index:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .cell::after\cf0 \strokec5  \{ \cf4 \strokec4 content:\cf0 \strokec5  \cf12 \strokec12 ''\cf0 \strokec5 ; \cf4 \strokec4 position:\cf0 \strokec5  \cf10 \strokec10 absolute\cf0 \strokec5 ; \cf4 \strokec4 left:\cf0 \strokec5  \cf11 \strokec11 50%\cf0 \strokec5 ; \cf4 \strokec4 top:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ; \cf4 \strokec4 height:\cf0 \strokec5  \cf11 \strokec11 100%\cf0 \strokec5 ; \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 1px\cf0 \strokec5 ; \cf4 \strokec4 background-color:\cf0 \strokec5  \cf10 \strokec10 var(--wood-dark)\cf0 \strokec5 ; \cf4 \strokec4 z-index:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ; \}\cb1 \
-\
-\cb3         \cf7 \strokec7 .stone\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 85%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 height:\cf0 \strokec5  \cf11 \strokec11 85%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-radius:\cf0 \strokec5  \cf11 \strokec11 50%\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 z-index:\cf0 \strokec5  \cf11 \strokec11 1\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 box-shadow:\cf0 \strokec5  \cf11 \strokec11 2px\cf0 \strokec5  \cf11 \strokec11 2px\cf0 \strokec5  \cf11 \strokec11 4px\cf0 \strokec5  \cf10 \strokec10 var(--stone-shadow)\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 opacity:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 transform:\cf0 \strokec5  \cf10 \strokec10 scale(\cf11 \strokec11 0.5\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 transition:\cf0 \strokec5  \cf10 \strokec10 all\cf0 \strokec5  \cf11 \strokec11 0.2s\cf0 \strokec5  \cf10 \strokec10 cubic-bezier(\cf11 \strokec11 0.175\cf0 \strokec5 , \cf11 \strokec11 0.885\cf0 \strokec5 , \cf11 \strokec11 0.32\cf0 \strokec5 , \cf11 \strokec11 1.275\cf10 \strokec10 )\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\cb3         \cf7 \strokec7 .stone.placed\cf0 \strokec5  \{ \cf4 \strokec4 opacity:\cf0 \strokec5  \cf11 \strokec11 1\cf0 \strokec5 ; \cf4 \strokec4 transform:\cf0 \strokec5  \cf10 \strokec10 scale(\cf11 \strokec11 1\cf10 \strokec10 )\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .stone.black\cf0 \strokec5  \{ \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 radial-gradient(circle\cf0 \strokec5  \cf10 \strokec10 at\cf0 \strokec5  \cf11 \strokec11 30%\cf0 \strokec5  \cf11 \strokec11 30%\cf0 \strokec5 , \cf10 \strokec10 #555\cf0 \strokec5 , \cf10 \strokec10 #000)\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cf7 \strokec7 .stone.white\cf0 \strokec5  \{ \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 radial-gradient(circle\cf0 \strokec5  \cf10 \strokec10 at\cf0 \strokec5  \cf11 \strokec11 30%\cf0 \strokec5  \cf11 \strokec11 30%\cf0 \strokec5 , \cf10 \strokec10 #fff\cf0 \strokec5 , \cf10 \strokec10 #ddd)\cf0 \strokec5 ; \cf4 \strokec4 border:\cf0 \strokec5  \cf11 \strokec11 1px\cf0 \strokec5  \cf10 \strokec10 solid\cf0 \strokec5  \cf10 \strokec10 #ccc\cf0 \strokec5 ; \}\cb1 \
-\cb3         \cb1 \
-\cb3         \cf7 \strokec7 .last-move::after\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 content:\cf0 \strokec5  \cf12 \strokec12 ''\cf0 \strokec5 ; \cf4 \strokec4 position:\cf0 \strokec5  \cf10 \strokec10 absolute\cf0 \strokec5 ; \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 15%\cf0 \strokec5 ; \cf4 \strokec4 height:\cf0 \strokec5  \cf11 \strokec11 15%\cf0 \strokec5 ; \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 #e74c3c\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 border-radius:\cf0 \strokec5  \cf11 \strokec11 50%\cf0 \strokec5 ; \cf4 \strokec4 top:\cf0 \strokec5  \cf11 \strokec11 42.5%\cf0 \strokec5 ; \cf4 \strokec4 left:\cf0 \strokec5  \cf11 \strokec11 42.5%\cf0 \strokec5 ; \cf4 \strokec4 z-index:\cf0 \strokec5  \cf11 \strokec11 2\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 /* --- Modals --- */\cf0 \cb1 \strokec5 \
-\cb3         \cf7 \strokec7 .modal\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 position:\cf0 \strokec5  \cf10 \strokec10 fixed\cf0 \strokec5 ; \cf4 \strokec4 top:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ; \cf4 \strokec4 left:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ; \cf4 \strokec4 right:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ; \cf4 \strokec4 bottom:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 rgba(\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0\cf0 \strokec5 ,\cf11 \strokec11 0.85\cf10 \strokec10 )\cf0 \strokec5 ; \cf4 \strokec4 display:\cf0 \strokec5  \cf10 \strokec10 none\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 flex-direction:\cf0 \strokec5  \cf10 \strokec10 column\cf0 \strokec5 ; \cf4 \strokec4 align-items:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ; \cf4 \strokec4 justify-content:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 z-index:\cf0 \strokec5  \cf11 \strokec11 100\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\cb3         \cf7 \strokec7 .modal-content\cf0 \strokec5  \{\cb1 \
-\cb3             \cf4 \strokec4 background:\cf0 \strokec5  \cf10 \strokec10 white\cf0 \strokec5 ; \cf4 \strokec4 color:\cf0 \strokec5  \cf10 \strokec10 #333\cf0 \strokec5 ; \cf4 \strokec4 padding:\cf0 \strokec5  \cf11 \strokec11 30px\cf0 \strokec5 ; \cf4 \strokec4 border-radius:\cf0 \strokec5  \cf11 \strokec11 10px\cf0 \strokec5 ;\cb1 \
-\cb3             \cf4 \strokec4 text-align:\cf0 \strokec5  \cf10 \strokec10 center\cf0 \strokec5 ; \cf4 \strokec4 max-width:\cf0 \strokec5  \cf11 \strokec11 400px\cf0 \strokec5 ; \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 90%\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\cb3         \cf7 \strokec7 .modal\cf0 \strokec5  \cf7 \strokec7 h2\cf0 \strokec5  \{ \cf4 \strokec4 margin-top:\cf0 \strokec5  \cf11 \strokec11 0\cf0 \strokec5 ; \}\cb1 \
-\
-\cb3         \cf9 \strokec9 /* Responsive */\cf0 \cb1 \strokec5 \
-\cb3         @\cf7 \strokec7 media\cf0 \strokec5  (\cf7 \strokec7 max-width:\cf0 \strokec5  900\cf7 \strokec7 px\cf0 \strokec5 ) \{\cb1 \
-\cb3             #game-layout \{ \cf4 \strokec4 flex-direction:\cf0 \strokec5  \cf10 \strokec10 column\cf0 \strokec5 ; \}\cb1 \
-\cb3             \cf7 \strokec7 .player-panel\cf0 \strokec5  \{ \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 90%\cf0 \strokec5 ; \cf4 \strokec4 flex-direction:\cf0 \strokec5  \cf10 \strokec10 row\cf0 \strokec5 ; \cf4 \strokec4 justify-content:\cf0 \strokec5  \cf10 \strokec10 space-between\cf0 \strokec5 ; \cf4 \strokec4 padding:\cf0 \strokec5  \cf11 \strokec11 10px\cf0 \strokec5  \cf11 \strokec11 20px\cf0 \strokec5 ; \}\cb1 \
-\cb3             \cf7 \strokec7 .panel-controls\cf0 \strokec5  \{ \cf4 \strokec4 width:\cf0 \strokec5  \cf10 \strokec10 auto\cf0 \strokec5 ; \cf4 \strokec4 flex-direction:\cf0 \strokec5  \cf10 \strokec10 row\cf0 \strokec5 ; \}\cb1 \
-\cb3             \cf7 \strokec7 #gomoku-board\cf0 \strokec5  \{ \cf4 \strokec4 width:\cf0 \strokec5  \cf11 \strokec11 90vw\cf0 \strokec5 ; \cf4 \strokec4 height:\cf0 \strokec5  \cf11 \strokec11 90vw\cf0 \strokec5 ; \cf4 \strokec4 max-width:\cf0 \strokec5  \cf11 \strokec11 400px\cf0 \strokec5 ; \cf4 \strokec4 max-height:\cf0 \strokec5  \cf11 \strokec11 400px\cf0 \strokec5 ; \}\cb1 \
-\cb3             \cf7 \strokec7 .speech-bubble\cf0 \strokec5  \{ \cf4 \strokec4 top:\cf0 \strokec5  \cf10 \strokec10 auto\cf0 \strokec5 ; \cf4 \strokec4 bottom:\cf0 \strokec5  \cf11 \strokec11 100%\cf0 \strokec5 ; \cf4 \strokec4 left:\cf0 \strokec5  \cf11 \strokec11 10%\cf0 \strokec5 ; \cf4 \strokec4 transform:\cf0 \strokec5  \cf10 \strokec10 none\cf0 \strokec5 ; \cf4 \strokec4 margin-bottom:\cf0 \strokec5  \cf11 \strokec11 10px\cf0 \strokec5 ; \}\cb1 \
-\cb3             \cf7 \strokec7 .speech-bubble::after\cf0 \strokec5  \{ \cf4 \strokec4 top:\cf0 \strokec5  \cf11 \strokec11 100%\cf0 \strokec5 ; \cf4 \strokec4 bottom:\cf0 \strokec5  \cf10 \strokec10 auto\cf0 \strokec5 ; \cf4 \strokec4 border-color:\cf0 \strokec5  \cf10 \strokec10 white\cf0 \strokec5  \cf10 \strokec10 transparent\cf0 \strokec5  \cf10 \strokec10 transparent\cf0 \strokec5  \cf10 \strokec10 transparent\cf0 \strokec5 ; \}\cb1 \
-\cb3         \}\cb1 \
-\cb3     \cf6 \strokec6 </\cf7 \strokec7 style\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\pard\pardeftab720\partightenfactor0
-\cf6 \cb3 \strokec6 </\cf7 \strokec7 head\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cf6 \cb3 \strokec6 <\cf7 \strokec7 body\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\
-\pard\pardeftab720\partightenfactor0
-\cf0 \cb3     \cf9 \strokec9 <!-- LOBBY SCREEN -->\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "lobby-screen"\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "screen active-screen"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3         \cf6 \strokec6 <\cf7 \strokec7 h1\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "font-size: 3rem; margin-bottom: 20px;"\cf6 \strokec6 ><\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-chess-board"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 >\cf0 \strokec5  Gomoku\cf6 \strokec6 </\cf7 \strokec7 h1\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3         \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "card"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "initial-actions"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-create"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "createGame()"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-plus-circle"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 >\cf0 \strokec5  Create New Game\cb1 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "margin: 15px 0; color: #7f8c8d;"\cf6 \strokec6 >\cf0 \strokec5 - OR -\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 input\cf0 \strokec5  \cf4 \strokec4 type\cf6 \strokec6 =\cf8 \strokec8 "text"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "join-id-input"\cf0 \strokec5  \cf4 \strokec4 placeholder\cf6 \strokec6 =\cf8 \strokec8 "Paste Game ID Here"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-join"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "joinGame()"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-sign-in-alt"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 >\cf0 \strokec5  Join Game\cb1 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "margin: 15px 0; color: #7f8c8d; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;"\cf6 \strokec6 >\cf0 \strokec5 Solo Modes\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-ai"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "startAiGame()"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-brain"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 >\cf0 \strokec5  Play vs Gemini AI \uc0\u10024 \cb1 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-local"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "startLocalGame()"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-user-friends"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 >\cf0 \strokec5  Practice Locally\cb1 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\
-\cb3             \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "waiting-area"\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "display: none;"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 p\cf6 \strokec6 >\cf0 \strokec5 Send this ID to your friend:\cf6 \strokec6 </\cf7 \strokec7 p\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "display: flex; gap: 5px;"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 input\cf0 \strokec5  \cf4 \strokec4 type\cf6 \strokec6 =\cf8 \strokec8 "text"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "my-peer-id"\cf0 \strokec5  \cf4 \strokec4 readonly\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-copy"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "copyToClipboard()"\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "width: auto;"\cf6 \strokec6 ><\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-copy"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 ></\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "loader"\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "margin-top: 20px;"\cf6 \strokec6 ><\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-spinner fa-spin fa-2x"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 ></\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 p\cf6 \strokec6 >\cf0 \strokec5 Waiting for opponent...\cf6 \strokec6 </\cf7 \strokec7 p\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-danger"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "resetLobby()"\cf6 \strokec6 >\cf0 \strokec5 Cancel\cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3         \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\
-\cb3     \cf9 \strokec9 <!-- GAME SCREEN -->\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "game-screen"\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "screen"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3         \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "game-layout"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cb1 \
-\cb3             \cf9 \strokec9 <!-- Player 1 (Left - You/Host) -->\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "player-panel"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "panel-p1"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "text-align: center;"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "avatar"\cf6 \strokec6 ><\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-user-astronaut"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 ></\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "player-name"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "p1-name"\cf6 \strokec6 >\cf0 \strokec5 You\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "player-role"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "p1-role"\cf6 \strokec6 >\cf0 \strokec5 Host\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "stone-indicator"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "p1-stone"\cf6 \strokec6 ></\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "panel-controls"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "btn-dice"\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-copy"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "randomizeColors()"\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "display:none;"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                         \cf6 \strokec6 <\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-dice"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 >\cf0 \strokec5  Dice\cb1 \
-\cb3                     \cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "btn-undo"\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-secondary"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "requestUndo()"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                         \cf6 \strokec6 <\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-undo"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 >\cf0 \strokec5  Undo (\cf6 \strokec6 <\cf7 \strokec7 span\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "undo-count"\cf6 \strokec6 >\cf0 \strokec5 4\cf6 \strokec6 </\cf7 \strokec7 span\cf6 \strokec6 >\cf0 \strokec5 )\cb1 \
-\cb3                     \cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\
-\cb3             \cf9 \strokec9 <!-- Board -->\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "board-wrapper"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "board-container"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "gomoku-board"\cf6 \strokec6 ></\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "margin-top: 15px; font-weight: bold; font-size: 1.2rem; min-height: 24px;"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 span\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "game-status-text"\cf6 \strokec6 >\cf0 \strokec5 Waiting to start...\cf6 \strokec6 </\cf7 \strokec7 span\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\
-\cb3             \cf9 \strokec9 <!-- Player 2 (Right - Opponent/AI) -->\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "player-panel"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "panel-p2"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "speech-bubble"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "ai-bubble"\cf6 \strokec6 >\cf0 \strokec5 Thinking...\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "text-align: center;"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "avatar"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "p2-avatar"\cf6 \strokec6 ><\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-robot"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 ></\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "player-name"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "p2-name"\cf6 \strokec6 >\cf0 \strokec5 Opponent\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "player-role"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "p2-role"\cf6 \strokec6 >\cf0 \strokec5 Guest\cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "stone-indicator"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "p2-stone"\cf6 \strokec6 ></\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "panel-controls"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                     \cf9 \strokec9 <!-- Opponent controls usually hidden -->\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\
-\cb3         \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3         \cb1 \
-\cb3         \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "margin-top: 20px; display: flex; gap: 10px;"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-create"\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "btn-rematch"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "requestRestart()"\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "display:none; width: auto; padding: 10px 30px;"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-redo"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 >\cf0 \strokec5  Rematch\cb1 \
-\cb3             \cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-danger"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "leaveGame()"\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "width: auto; padding: 10px 30px;"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 i\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "fas fa-door-open"\cf6 \strokec6 ></\cf7 \strokec7 i\cf6 \strokec6 >\cf0 \strokec5  Leave\cb1 \
-\cb3             \cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3         \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\
-\cb3     \cf9 \strokec9 <!-- MODALS -->\cf0 \cb1 \strokec5 \
-\cb3     \cf9 \strokec9 <!-- Approval Modal (Undo/Restart) -->\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "approval-modal"\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "modal"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3         \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "modal-content"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 <\cf7 \strokec7 h2\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "approval-title"\cf6 \strokec6 >\cf0 \strokec5 Request\cf6 \strokec6 </\cf7 \strokec7 h2\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 <\cf7 \strokec7 p\cf0 \strokec5  \cf4 \strokec4 id\cf6 \strokec6 =\cf8 \strokec8 "approval-msg"\cf6 \strokec6 >\cf0 \strokec5 Opponent wants to...\cf6 \strokec6 </\cf7 \strokec7 p\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 <\cf7 \strokec7 div\cf0 \strokec5  \cf4 \strokec4 style\cf6 \strokec6 =\cf8 \strokec8 "display: flex; gap: 10px; margin-top: 20px;"\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-create"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "handleApproval(true)"\cf6 \strokec6 >\cf0 \strokec5 Allow\cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3                 \cf6 \strokec6 <\cf7 \strokec7 button\cf0 \strokec5  \cf4 \strokec4 class\cf6 \strokec6 =\cf8 \strokec8 "btn btn-danger"\cf0 \strokec5  \cf4 \strokec4 onclick\cf6 \strokec6 =\cf8 \strokec8 "handleApproval(false)"\cf6 \strokec6 >\cf0 \strokec5 Deny\cf6 \strokec6 </\cf7 \strokec7 button\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3             \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3         \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3     \cf6 \strokec6 </\cf7 \strokec7 div\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\
-\cb3     \cf6 \strokec6 <\cf7 \strokec7 script\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cb3         \cf9 \strokec9 // --- GEMINI CONFIG ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 const\cf0 \strokec5  apiKey = \cf12 \strokec12 "AIzaSyAIBzCT3BlcvYsoG_GLicoeSfHwXchgcAY"\cf0 \strokec5 ; \cb1 \
-\cb3         \cf13 \strokec13 const\cf0 \strokec5  \cf14 \strokec14 GEMINI_API_URL\cf0 \strokec5  = \cf12 \strokec12 `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=\cf0 \strokec5 $\{apiKey\}\cf12 \strokec12 `\cf0 \strokec5 ;\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- GAME CONFIG ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 const\cf0 \strokec5  \cf14 \strokec14 BOARD_SIZE\cf0 \strokec5  = \cf15 \strokec15 15\cf0 \strokec5 ;\cb1 \
-\cb3         \cf13 \strokec13 const\cf0 \strokec5  \cf14 \strokec14 WIN_COUNT\cf0 \strokec5  = \cf15 \strokec15 5\cf0 \strokec5 ;\cb1 \
-\cb3         \cf13 \strokec13 const\cf0 \strokec5  \cf14 \strokec14 MAX_UNDOS\cf0 \strokec5  = \cf15 \strokec15 4\cf0 \strokec5 ;\cb1 \
-\cb3         \cb1 \
-\cb3         \cf9 \strokec9 // --- STATE ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 let\cf0 \strokec5  peer = \cf13 \strokec13 null\cf0 \strokec5 ;\cb1 \
-\cb3         \cf13 \strokec13 let\cf0 \strokec5  conn = \cf13 \strokec13 null\cf0 \strokec5 ;\cb1 \
-\cb3         \cf13 \strokec13 let\cf0 \strokec5  myId = \cf13 \strokec13 null\cf0 \strokec5 ;\cb1 \
-\cb3         \cf13 \strokec13 let\cf0 \strokec5  isHost = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3         \cf13 \strokec13 let\cf0 \strokec5  isLocal = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3         \cf13 \strokec13 let\cf0 \strokec5  isAiGame = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3         \cb1 \
-\cb3         \cf9 \strokec9 // Game State\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 let\cf0 \strokec5  gameState = \{\cb1 \
-\cb3             board: [],\cb1 \
-\cb3             history: [], \cf9 \strokec9 // Stack of moves: \{r, c, color\}\cf0 \cb1 \strokec5 \
-\cb3             turn: \cf12 \strokec12 'black'\cf0 \strokec5 , \cf9 \strokec9 // 'black' or 'white'\cf0 \cb1 \strokec5 \
-\cb3             myColor: \cf13 \strokec13 null\cf0 \strokec5 , \cf9 \strokec9 // 'black', 'white', or null (if spectator/local)\cf0 \cb1 \strokec5 \
-\cb3             p1Color: \cf12 \strokec12 'black'\cf0 \strokec5 , \cf9 \strokec9 // Visual tracking for left panel\cf0 \cb1 \strokec5 \
-\cb3             active: \cf13 \strokec13 false\cf0 \strokec5 ,\cb1 \
-\cb3             undoCount: \cf14 \strokec14 MAX_UNDOS\cf0 \strokec5 ,\cb1 \
-\cb3             winner: \cf13 \strokec13 null\cf0 \cb1 \strokec5 \
-\cb3         \};\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- SOUNDS ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 const\cf0 \strokec5  audio = \{\cb1 \
-\cb3             place: \cf13 \strokec13 new\cf0 \strokec5  \cf14 \strokec14 Audio\cf0 \strokec5 (\cf12 \strokec12 'https://rpg.hamsterrepublic.com/wiki-images/2/21/Collision8.ogg'\cf0 \strokec5 ),\cb1 \
-\cb3             win: \cf13 \strokec13 new\cf0 \strokec5  \cf14 \strokec14 Audio\cf0 \strokec5 (\cf12 \strokec12 'https://themushroomkingdom.net/sounds/wav/smw/smw_course_clear.wav'\cf0 \strokec5 ),\cb1 \
-\cb3             notify: \cf13 \strokec13 new\cf0 \strokec5  \cf14 \strokec14 Audio\cf0 \strokec5 (\cf12 \strokec12 'https://rpg.hamsterrepublic.com/wiki-images/d/d7/Strange_Echo_3.ogg'\cf0 \strokec5 )\cb1 \
-\cb3         \};\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- DOM ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 const\cf0 \strokec5  screens = \{ lobby: document.getElementById(\cf12 \strokec12 'lobby-screen'\cf0 \strokec5 ), game: document.getElementById(\cf12 \strokec12 'game-screen'\cf0 \strokec5 ) \};\cb1 \
-\cb3         \cf13 \strokec13 const\cf0 \strokec5  els = \{\cb1 \
-\cb3             board: document.getElementById(\cf12 \strokec12 'gomoku-board'\cf0 \strokec5 ),\cb1 \
-\cb3             status: document.getElementById(\cf12 \strokec12 'game-status-text'\cf0 \strokec5 ),\cb1 \
-\cb3             p1Panel: document.getElementById(\cf12 \strokec12 'panel-p1'\cf0 \strokec5 ),\cb1 \
-\cb3             p2Panel: document.getElementById(\cf12 \strokec12 'panel-p2'\cf0 \strokec5 ),\cb1 \
-\cb3             p1Stone: document.getElementById(\cf12 \strokec12 'p1-stone'\cf0 \strokec5 ),\cb1 \
-\cb3             p2Stone: document.getElementById(\cf12 \strokec12 'p2-stone'\cf0 \strokec5 ),\cb1 \
-\cb3             p1Name: document.getElementById(\cf12 \strokec12 'p1-name'\cf0 \strokec5 ),\cb1 \
-\cb3             p2Name: document.getElementById(\cf12 \strokec12 'p2-name'\cf0 \strokec5 ),\cb1 \
-\cb3             p1Role: document.getElementById(\cf12 \strokec12 'p1-role'\cf0 \strokec5 ), \cb1 \
-\cb3             p2Role: document.getElementById(\cf12 \strokec12 'p2-role'\cf0 \strokec5 ), \cb1 \
-\cb3             p2Avatar: document.getElementById(\cf12 \strokec12 'p2-avatar'\cf0 \strokec5 ),\cb1 \
-\cb3             aiBubble: document.getElementById(\cf12 \strokec12 'ai-bubble'\cf0 \strokec5 ),\cb1 \
-\cb3             btnDice: document.getElementById(\cf12 \strokec12 'btn-dice'\cf0 \strokec5 ),\cb1 \
-\cb3             btnUndo: document.getElementById(\cf12 \strokec12 'btn-undo'\cf0 \strokec5 ),\cb1 \
-\cb3             btnRematch: document.getElementById(\cf12 \strokec12 'btn-rematch'\cf0 \strokec5 ),\cb1 \
-\cb3             undoCount: document.getElementById(\cf12 \strokec12 'undo-count'\cf0 \strokec5 ),\cb1 \
-\cb3             approvalModal: document.getElementById(\cf12 \strokec12 'approval-modal'\cf0 \strokec5 ),\cb1 \
-\cb3             approvalTitle: document.getElementById(\cf12 \strokec12 'approval-title'\cf0 \strokec5 ),\cb1 \
-\cb3             approvalMsg: document.getElementById(\cf12 \strokec12 'approval-msg'\cf0 \strokec5 )\cb1 \
-\cb3         \};\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- INITIALIZATION ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  initBoard() \{\cb1 \
-\cb3             els.board.innerHTML = \cf12 \strokec12 ''\cf0 \strokec5 ;\cb1 \
-\cb3             gameState.board = \cf14 \strokec14 Array\cf0 \strokec5 (\cf14 \strokec14 BOARD_SIZE\cf0 \strokec5 ).fill().map(() => \cf14 \strokec14 Array\cf0 \strokec5 (\cf14 \strokec14 BOARD_SIZE\cf0 \strokec5 ).fill(\cf13 \strokec13 null\cf0 \strokec5 ));\cb1 \
-\cb3             gameState.history = [];\cb1 \
-\cb3             \cb1 \
-\cb3             \cf13 \strokec13 for\cf0 \strokec5  (\cf13 \strokec13 let\cf0 \strokec5  r = \cf15 \strokec15 0\cf0 \strokec5 ; r < \cf14 \strokec14 BOARD_SIZE\cf0 \strokec5 ; r++) \{\cb1 \
-\cb3                 \cf13 \strokec13 for\cf0 \strokec5  (\cf13 \strokec13 let\cf0 \strokec5  c = \cf15 \strokec15 0\cf0 \strokec5 ; c < \cf14 \strokec14 BOARD_SIZE\cf0 \strokec5 ; c++) \{\cb1 \
-\cb3                     \cf13 \strokec13 const\cf0 \strokec5  cell = document.createElement(\cf12 \strokec12 'div'\cf0 \strokec5 );\cb1 \
-\cb3                     cell.classList.add(\cf12 \strokec12 'cell'\cf0 \strokec5 );\cb1 \
-\cb3                     cell.dataset.r = r;\cb1 \
-\cb3                     cell.dataset.c = c;\cb1 \
-\cb3                     cell.onclick = () => handleCellClick(r, c);\cb1 \
-\cb3                     \cb1 \
-\cb3                     \cf13 \strokec13 const\cf0 \strokec5  stone = document.createElement(\cf12 \strokec12 'div'\cf0 \strokec5 );\cb1 \
-\cb3                     stone.classList.add(\cf12 \strokec12 'stone'\cf0 \strokec5 );\cb1 \
-\cb3                     cell.appendChild(stone);\cb1 \
-\cb3                     els.board.appendChild(cell);\cb1 \
-\cb3                 \}\cb1 \
-\cb3             \}\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- CORE GAMEPLAY ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  startGame(local = \cf13 \strokec13 false\cf0 \strokec5 ) \{\cb1 \
-\cb3             isLocal = local;\cb1 \
-\cb3             gameState.active = \cf13 \strokec13 true\cf0 \strokec5 ;\cb1 \
-\cb3             gameState.turn = \cf12 \strokec12 'black'\cf0 \strokec5 ;\cb1 \
-\cb3             gameState.winner = \cf13 \strokec13 null\cf0 \strokec5 ;\cb1 \
-\cb3             gameState.undoCount = \cf14 \strokec14 MAX_UNDOS\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             \cf9 \strokec9 // Default Colors if not randomized\cf0 \cb1 \strokec5 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (!gameState.p1Color) gameState.p1Color = \cf12 \strokec12 'black'\cf0 \strokec5 ; \cb1 \
-\cb3             \cb1 \
-\cb3             \cf9 \strokec9 // Set myColor logic\cf0 \cb1 \strokec5 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (isLocal) \{\cb1 \
-\cb3                 gameState.myColor = \cf12 \strokec12 'both'\cf0 \strokec5 ; \cf9 \strokec9 // Or 'black' if AI game\cf0 \cb1 \strokec5 \
-\cb3                 gameState.p1Color = \cf12 \strokec12 'black'\cf0 \strokec5 ;\cb1 \
-\cb3             \} \cf13 \strokec13 else\cf0 \strokec5  \{\cb1 \
-\cb3                 gameState.myColor = isHost ? gameState.p1Color : (gameState.p1Color === \cf12 \strokec12 'black'\cf0 \strokec5  ? \cf12 \strokec12 'white'\cf0 \strokec5  : \cf12 \strokec12 'black'\cf0 \strokec5 );\cb1 \
-\cb3             \}\cb1 \
-\
-\cb3             \cf9 \strokec9 // AI Game Setup\cf0 \cb1 \strokec5 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (isAiGame) \{\cb1 \
-\cb3                 gameState.myColor = \cf12 \strokec12 'black'\cf0 \strokec5 ; \cf9 \strokec9 // Player is always Black vs AI for simplicity\cf0 \cb1 \strokec5 \
-\cb3                 gameState.p1Color = \cf12 \strokec12 'black'\cf0 \strokec5 ;\cb1 \
-\cb3                 els.p2Panel.classList.remove(\cf12 \strokec12 'ai-thinking'\cf0 \strokec5 );\cb1 \
-\cb3                 els.aiBubble.style.display = \cf12 \strokec12 'none'\cf0 \strokec5 ;\cb1 \
-\cb3             \}\cb1 \
-\
-\cb3             els.btnRematch.style.display = \cf12 \strokec12 'none'\cf0 \strokec5 ;\cb1 \
-\cb3             els.btnDice.style.display = \cf12 \strokec12 'none'\cf0 \strokec5 ; \cb1 \
-\cb3             \cb1 \
-\cb3             updateUI();\cb1 \
-\cb3             initBoard();\cb1 \
-\cb3             els.undoCount.innerText = gameState.undoCount;\cb1 \
-\cb3             els.btnUndo.disabled = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  handleCellClick(r, c) \{\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (!gameState.active) \cf13 \strokec13 return\cf0 \strokec5 ;\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (gameState.board[r][c] !== \cf13 \strokec13 null\cf0 \strokec5 ) \cf13 \strokec13 return\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             \cf9 \strokec9 // Turn Checks\cf0 \cb1 \strokec5 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (!isLocal && gameState.turn !== gameState.myColor) \cf13 \strokec13 return\cf0 \strokec5 ;\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (isAiGame && gameState.turn === \cf12 \strokec12 'white'\cf0 \strokec5 ) \cf13 \strokec13 return\cf0 \strokec5 ; \cf9 \strokec9 // AI's turn\cf0 \cb1 \strokec5 \
-\
-\cb3             makeMove(r, c, gameState.turn);\cb1 \
-\
-\cb3             \cf9 \strokec9 // Side Effects\cf0 \cb1 \strokec5 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (!isLocal && conn) \{\cb1 \
-\cb3                 conn.send(\{ type: \cf12 \strokec12 'move'\cf0 \strokec5 , r, c, color: gameState.turn \});\cb1 \
-\cb3             \}\cb1 \
-\
-\cb3             \cf9 \strokec9 // Trigger AI\cf0 \cb1 \strokec5 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (isAiGame && gameState.active && gameState.turn === \cf12 \strokec12 'white'\cf0 \strokec5 ) \{\cb1 \
-\cb3                 triggerAiTurn();\cb1 \
-\cb3             \}\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  makeMove(r, c, color) \{\cb1 \
-\cb3             gameState.board[r][c] = color;\cb1 \
-\cb3             gameState.history.push(\{r, c, color\});\cb1 \
-\cb3             \cb1 \
-\cb3             audio.place.play().\cf13 \strokec13 catch\cf0 \strokec5 (e => \{\});\cb1 \
-\
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  cell = document.querySelector(\cf12 \strokec12 `.cell[data-r="\cf0 \strokec5 $\{r\}\cf12 \strokec12 "][data-c="\cf0 \strokec5 $\{c\}\cf12 \strokec12 "]`\cf0 \strokec5 );\cb1 \
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  stone = cell.querySelector(\cf12 \strokec12 '.stone'\cf0 \strokec5 );\cb1 \
-\cb3             stone.classList.add(\cf12 \strokec12 'placed'\cf0 \strokec5 , color);\cb1 \
-\cb3             \cb1 \
-\cb3             \cf9 \strokec9 // Highlight Last Move\cf0 \cb1 \strokec5 \
-\cb3             document.querySelectorAll(\cf12 \strokec12 '.last-move'\cf0 \strokec5 ).forEach(el => el.classList.remove(\cf12 \strokec12 'last-move'\cf0 \strokec5 ));\cb1 \
-\cb3             stone.classList.add(\cf12 \strokec12 'last-move'\cf0 \strokec5 );\cb1 \
-\
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (checkWin(r, c, color)) \{\cb1 \
-\cb3                 handleWin(color);\cb1 \
-\cb3             \} \cf13 \strokec13 else\cf0 \strokec5  \{\cb1 \
-\cb3                 gameState.turn = (gameState.turn === \cf12 \strokec12 'black'\cf0 \strokec5 ) ? \cf12 \strokec12 'white'\cf0 \strokec5  : \cf12 \strokec12 'black'\cf0 \strokec5 ;\cb1 \
-\cb3                 updateUI();\cb1 \
-\cb3             \}\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  handleWin(color) \{\cb1 \
-\cb3             gameState.active = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3             gameState.winner = color;\cb1 \
-\cb3             audio.win.play().\cf13 \strokec13 catch\cf0 \strokec5 (e => \{\});\cb1 \
-\cb3             \cb1 \
-\cb3             \cf13 \strokec13 let\cf0 \strokec5  winText = \cf12 \strokec12 ""\cf0 \strokec5 ;\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (isLocal) \{\cb1 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5  (isAiGame) winText = (color === \cf12 \strokec12 'black'\cf0 \strokec5  ? \cf12 \strokec12 "YOU WIN!"\cf0 \strokec5  : \cf12 \strokec12 "AI WINS!"\cf0 \strokec5 );\cb1 \
-\cb3                 \cf13 \strokec13 else\cf0 \strokec5  winText = color.toUpperCase() + \cf12 \strokec12 " WINS!"\cf0 \strokec5 ;\cb1 \
-\cb3             \} \cf13 \strokec13 else\cf0 \strokec5  \{\cb1 \
-\cb3                 winText = (color === gameState.myColor) ? \cf12 \strokec12 "YOU WIN!"\cf0 \strokec5  : \cf12 \strokec12 "OPPONENT WINS!"\cf0 \strokec5 ;\cb1 \
-\cb3             \}\cb1 \
-\cb3             els.status.innerText = winText;\cb1 \
-\cb3             els.status.style.color = \cf12 \strokec12 "#f1c40f"\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             els.btnRematch.style.display = \cf12 \strokec12 'inline-block'\cf0 \strokec5 ;\cb1 \
-\cb3             els.btnUndo.disabled = \cf13 \strokec13 true\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Panel.classList.remove(\cf12 \strokec12 'ai-thinking'\cf0 \strokec5 );\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- GEMINI AI INTEGRATION ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 async\cf0 \strokec5  \cf13 \strokec13 function\cf0 \strokec5  triggerAiTurn() \{\cb1 \
-\cb3             \cf9 \strokec9 // Visuals\cf0 \cb1 \strokec5 \
-\cb3             els.p2Panel.classList.add(\cf12 \strokec12 'ai-thinking'\cf0 \strokec5 );\cb1 \
-\cb3             els.status.innerText = \cf12 \strokec12 "Gemini AI is thinking..."\cf0 \strokec5 ;\cb1 \
-\cb3             els.aiBubble.style.display = \cf12 \strokec12 'none'\cf0 \strokec5 ;\cb1 \
-\
-\cb3             \cf9 \strokec9 // 1. Build Prompt based on History\cf0 \cb1 \strokec5 \
-\cb3             \cf9 \strokec9 // We replay history to describe the game state to the LLM. \cf0 \cb1 \strokec5 \
-\cb3             \cf9 \strokec9 // This is efficient and gives the "flow" of the game.\cf0 \cb1 \strokec5 \
-\cb3             \cf13 \strokec13 let\cf0 \strokec5  promptHistory = gameState.history.map((m, i) => \cb1 \
-\cb3                 \cf12 \strokec12 `Turn \cf0 \strokec5 $\{i+\cf15 \strokec15 1\cf0 \strokec5 \}\cf12 \strokec12  (\cf0 \strokec5 $\{m.color\}\cf12 \strokec12 ): Row \cf0 \strokec5 $\{m.r\}\cf12 \strokec12 , Col \cf0 \strokec5 $\{m.c\}\cf12 \strokec12 `\cf0 \cb1 \strokec5 \
-\cb3             ).join(\cf12 \strokec12 "\\n"\cf0 \strokec5 );\cb1 \
-\
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  systemPrompt = \cf12 \strokec12 `\cf0 \cb1 \strokec5 \
-\pard\pardeftab720\partightenfactor0
-\cf12 \cb3 \strokec12                 You are a world-class Gomoku (Five-in-a-Row) Grandmaster playing White. \cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 The board is 15x15 (0-indexed, 0-14).\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 \cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 Your Goal: \cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 1. Win if you have 4 in a row.\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 2. Block opponent if they have 3 or 4 in a row.\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 3. Build your own lines.\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 \cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 Current Board History:\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 \cf0 \strokec5 $\{promptHistory\}\cb1 \
-\
-\cf12 \cb3 \strokec12                 Task:\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 Determine the BEST move for White. \cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 Return strictly JSON format:\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 \{\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                     "row": integer (0-14),\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                     "col": integer (0-14),\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                     "message": "Short witty banter or strategic thought (max 10 words)"\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 \}\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12                 Do not explain outside the JSON.\cf0 \cb1 \strokec5 \
-\cf12 \cb3 \strokec12             `\cf0 \strokec5 ;\cb1 \
-\
-\pard\pardeftab720\partightenfactor0
-\cf0 \cb3             \cf9 \strokec9 // 2. Call API\cf0 \cb1 \strokec5 \
-\cb3             \cf13 \strokec13 try\cf0 \strokec5  \{\cb1 \
-\cb3                 \cf13 \strokec13 const\cf0 \strokec5  response = \cf13 \strokec13 await\cf0 \strokec5  fetch(\cf14 \strokec14 GEMINI_API_URL\cf0 \strokec5 , \{\cb1 \
-\cb3                     method: \cf12 \strokec12 'POST'\cf0 \strokec5 ,\cb1 \
-\cb3                     headers: \{ \cf12 \strokec12 'Content-Type'\cf0 \strokec5 : \cf12 \strokec12 'application/json'\cf0 \strokec5  \},\cb1 \
-\cb3                     body: \cf14 \strokec14 JSON\cf0 \strokec5 .stringify(\{\cb1 \
-\cb3                         contents: [\{ parts: [\{ text: systemPrompt \}] \}]\cb1 \
-\cb3                     \})\cb1 \
-\cb3                 \});\cb1 \
-\
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5  (!response.ok) \cf13 \strokec13 throw\cf0 \strokec5  \cf13 \strokec13 new\cf0 \strokec5  \cf14 \strokec14 Error\cf0 \strokec5 (\cf12 \strokec12 "API Error"\cf0 \strokec5 );\cb1 \
-\cb3                 \cf13 \strokec13 const\cf0 \strokec5  data = \cf13 \strokec13 await\cf0 \strokec5  response.json();\cb1 \
-\cb3                 \cf13 \strokec13 const\cf0 \strokec5  text = data.candidates[\cf15 \strokec15 0\cf0 \strokec5 ].content.parts[\cf15 \strokec15 0\cf0 \strokec5 ].text;\cb1 \
-\cb3                 \cb1 \
-\cb3                 \cf9 \strokec9 // 3. Parse JSON (Handle potential markdown wrapping)\cf0 \cb1 \strokec5 \
-\cb3                 \cf13 \strokec13 const\cf0 \strokec5  jsonStr = text.replace(\cf7 \strokec7 /```json/\cf13 \strokec13 g\cf0 \strokec5 , \cf12 \strokec12 ''\cf0 \strokec5 ).replace(\cf7 \strokec7 /```/\cf13 \strokec13 g\cf0 \strokec5 , \cf12 \strokec12 ''\cf0 \strokec5 ).trim();\cb1 \
-\cb3                 \cf13 \strokec13 const\cf0 \strokec5  move = \cf14 \strokec14 JSON\cf0 \strokec5 .parse(jsonStr);\cb1 \
-\
-\cb3                 \cf9 \strokec9 // 4. Validate and Apply\cf0 \cb1 \strokec5 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5  (isValid(move.row, move.col) && gameState.board[move.row][move.col] === \cf13 \strokec13 null\cf0 \strokec5 ) \{\cb1 \
-\cb3                     makeMove(move.row, move.col, \cf12 \strokec12 'white'\cf0 \strokec5 );\cb1 \
-\cb3                     \cf9 \strokec9 // Show Bubble\cf0 \cb1 \strokec5 \
-\cb3                     els.aiBubble.innerText = move.message;\cb1 \
-\cb3                     els.aiBubble.style.display = \cf12 \strokec12 'block'\cf0 \strokec5 ;\cb1 \
-\cb3                 \} \cf13 \strokec13 else\cf0 \strokec5  \{\cb1 \
-\cb3                     \cf9 \strokec9 // Fallback: Random Empty Spot (prevent crash)\cf0 \cb1 \strokec5 \
-\cb3                     console.error(\cf12 \strokec12 "AI returned invalid move"\cf0 \strokec5 , move);\cb1 \
-\cb3                     fallbackRandomMove();\cb1 \
-\cb3                 \}\cb1 \
-\
-\cb3             \} \cf13 \strokec13 catch\cf0 \strokec5  (err) \{\cb1 \
-\cb3                 console.error(\cf12 \strokec12 "Gemini Failure:"\cf0 \strokec5 , err);\cb1 \
-\cb3                 fallbackRandomMove();\cb1 \
-\cb3                 els.aiBubble.innerText = \cf12 \strokec12 "*Circuits overheating*"\cf0 \strokec5 ;\cb1 \
-\cb3                 els.aiBubble.style.display = \cf12 \strokec12 'block'\cf0 \strokec5 ;\cb1 \
-\cb3             \} \cf13 \strokec13 finally\cf0 \strokec5  \{\cb1 \
-\cb3                 els.p2Panel.classList.remove(\cf12 \strokec12 'ai-thinking'\cf0 \strokec5 );\cb1 \
-\cb3             \}\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  fallbackRandomMove() \{\cb1 \
-\cb3             \cf9 \strokec9 // Simple random fallback so game doesn't hang\cf0 \cb1 \strokec5 \
-\cb3             \cf13 \strokec13 let\cf0 \strokec5  r, c;\cb1 \
-\cb3             \cf13 \strokec13 let\cf0 \strokec5  attempts = \cf15 \strokec15 0\cf0 \strokec5 ;\cb1 \
-\cb3             \cf13 \strokec13 do\cf0 \strokec5  \{\cb1 \
-\cb3                 r = \cf14 \strokec14 Math\cf0 \strokec5 .floor(\cf14 \strokec14 Math\cf0 \strokec5 .random() * \cf14 \strokec14 BOARD_SIZE\cf0 \strokec5 );\cb1 \
-\cb3                 c = \cf14 \strokec14 Math\cf0 \strokec5 .floor(\cf14 \strokec14 Math\cf0 \strokec5 .random() * \cf14 \strokec14 BOARD_SIZE\cf0 \strokec5 );\cb1 \
-\cb3                 attempts++;\cb1 \
-\cb3             \} \cf13 \strokec13 while\cf0 \strokec5  (gameState.board[r][c] !== \cf13 \strokec13 null\cf0 \strokec5  && attempts < \cf15 \strokec15 100\cf0 \strokec5 );\cb1 \
-\cb3             \cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (gameState.board[r][c] === \cf13 \strokec13 null\cf0 \strokec5 ) \{\cb1 \
-\cb3                 makeMove(r, c, \cf12 \strokec12 'white'\cf0 \strokec5 );\cb1 \
-\cb3             \}\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- UNDO SYSTEM ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  requestUndo() \{\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (!gameState.active && !gameState.winner) \cf13 \strokec13 return\cf0 \strokec5 ;\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (gameState.undoCount <= \cf15 \strokec15 0\cf0 \strokec5 ) \cf13 \strokec13 return\cf0 \strokec5  alert(\cf12 \strokec12 "No undos left!"\cf0 \strokec5 );\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (gameState.history.length === \cf15 \strokec15 0\cf0 \strokec5 ) \cf13 \strokec13 return\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (isAiGame) \{\cb1 \
-\cb3                 \cf9 \strokec9 // In AI game, undo TWICE to get back to user turn\cf0 \cb1 \strokec5 \
-\cb3                 \cf9 \strokec9 // Unless AI is currently thinking... then block\cf0 \cb1 \strokec5 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5  (gameState.turn === \cf12 \strokec12 'white'\cf0 \strokec5 ) \cf13 \strokec13 return\cf0 \strokec5  alert(\cf12 \strokec12 "Wait for AI to finish!"\cf0 \strokec5 );\cb1 \
-\cb3                 \cb1 \
-\cb3                 performUndo(); \cf9 \strokec9 // Undo AI move\cf0 \cb1 \strokec5 \
-\cb3                 performUndo(); \cf9 \strokec9 // Undo Player move\cf0 \cb1 \strokec5 \
-\cb3                 gameState.undoCount--;\cb1 \
-\cb3                 updateUI();\cb1 \
-\cb3                 \cf13 \strokec13 return\cf0 \strokec5 ;\cb1 \
-\cb3             \}\cb1 \
-\
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (isLocal) \{\cb1 \
-\cb3                 performUndo(); \cb1 \
-\cb3                 \cf13 \strokec13 return\cf0 \strokec5 ;\cb1 \
-\cb3             \}\cb1 \
-\
-\cb3             \cf9 \strokec9 // Network Request\cf0 \cb1 \strokec5 \
-\cb3             els.btnUndo.innerText = \cf12 \strokec12 "Waiting..."\cf0 \strokec5 ;\cb1 \
-\cb3             els.btnUndo.disabled = \cf13 \strokec13 true\cf0 \strokec5 ;\cb1 \
-\cb3             conn.send(\{ type: \cf12 \strokec12 'undo_request'\cf0 \strokec5  \});\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  performUndo() \{\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (gameState.history.length === \cf15 \strokec15 0\cf0 \strokec5 ) \cf13 \strokec13 return\cf0 \strokec5 ;\cb1 \
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  lastMove = gameState.history.pop();\cb1 \
-\cb3             \cb1 \
-\cb3             gameState.board[lastMove.r][lastMove.c] = \cf13 \strokec13 null\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  cell = document.querySelector(\cf12 \strokec12 `.cell[data-r="\cf0 \strokec5 $\{lastMove.r\}\cf12 \strokec12 "][data-c="\cf0 \strokec5 $\{lastMove.c\}\cf12 \strokec12 "]`\cf0 \strokec5 );\cb1 \
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  stone = cell.querySelector(\cf12 \strokec12 '.stone'\cf0 \strokec5 );\cb1 \
-\cb3             stone.className = \cf12 \strokec12 'stone'\cf0 \strokec5 ; \cb1 \
-\cb3             \cb1 \
-\cb3             gameState.turn = lastMove.color;\cb1 \
-\cb3             gameState.active = \cf13 \strokec13 true\cf0 \strokec5 ; \cb1 \
-\cb3             gameState.winner = \cf13 \strokec13 null\cf0 \strokec5 ;\cb1 \
-\cb3             els.btnRematch.style.display = \cf12 \strokec12 'none'\cf0 \strokec5 ;\cb1 \
-\
-\cb3             document.querySelectorAll(\cf12 \strokec12 '.last-move'\cf0 \strokec5 ).forEach(el => el.classList.remove(\cf12 \strokec12 'last-move'\cf0 \strokec5 ));\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (gameState.history.length > \cf15 \strokec15 0\cf0 \strokec5 ) \{\cb1 \
-\cb3                 \cf13 \strokec13 const\cf0 \strokec5  prev = gameState.history[gameState.history.length - \cf15 \strokec15 1\cf0 \strokec5 ];\cb1 \
-\cb3                 \cf13 \strokec13 const\cf0 \strokec5  prevCell = document.querySelector(\cf12 \strokec12 `.cell[data-r="\cf0 \strokec5 $\{prev.r\}\cf12 \strokec12 "][data-c="\cf0 \strokec5 $\{prev.c\}\cf12 \strokec12 "]`\cf0 \strokec5 );\cb1 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5 (prevCell) prevCell.querySelector(\cf12 \strokec12 '.stone'\cf0 \strokec5 ).classList.add(\cf12 \strokec12 'last-move'\cf0 \strokec5 );\cb1 \
-\cb3             \}\cb1 \
-\cb3             \cb1 \
-\cb3             updateUI();\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- DICE / RANDOMIZE ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  randomizeColors() \{\cb1 \
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  p1IsBlack = \cf14 \strokec14 Math\cf0 \strokec5 .random() < \cf15 \strokec15 0.5\cf0 \strokec5 ;\cb1 \
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  p1Color = p1IsBlack ? \cf12 \strokec12 'black'\cf0 \strokec5  : \cf12 \strokec12 'white'\cf0 \strokec5 ;\cb1 \
-\cb3             conn.send(\{ type: \cf12 \strokec12 'setup_colors'\cf0 \strokec5 , p1Color: p1Color \});\cb1 \
-\cb3             applyColors(p1Color);\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  applyColors(p1Color) \{\cb1 \
-\cb3             gameState.p1Color = p1Color;\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (isHost) \{\cb1 \
-\cb3                 gameState.myColor = p1Color;\cb1 \
-\cb3             \} \cf13 \strokec13 else\cf0 \strokec5  \{\cb1 \
-\cb3                 gameState.myColor = (p1Color === \cf12 \strokec12 'black'\cf0 \strokec5  ? \cf12 \strokec12 'white'\cf0 \strokec5  : \cf12 \strokec12 'black'\cf0 \strokec5 );\cb1 \
-\cb3             \}\cb1 \
-\cb3             updateUI();\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- UI UPDATES ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  updateUI() \{\cb1 \
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  p2Color = gameState.p1Color === \cf12 \strokec12 'black'\cf0 \strokec5  ? \cf12 \strokec12 'white'\cf0 \strokec5  : \cf12 \strokec12 'black'\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             els.p1Stone.className = \cf12 \strokec12 `stone-indicator \cf0 \strokec5 $\{gameState.p1Color\}\cf12 \strokec12 `\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Stone.className = \cf12 \strokec12 `stone-indicator \cf0 \strokec5 $\{p2Color\}\cf12 \strokec12 `\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (gameState.turn === gameState.p1Color) \{\cb1 \
-\cb3                 els.p1Panel.classList.add(\cf12 \strokec12 'active-turn'\cf0 \strokec5 );\cb1 \
-\cb3                 els.p2Panel.classList.remove(\cf12 \strokec12 'active-turn'\cf0 \strokec5 );\cb1 \
-\cb3             \} \cf13 \strokec13 else\cf0 \strokec5  \{\cb1 \
-\cb3                 els.p1Panel.classList.remove(\cf12 \strokec12 'active-turn'\cf0 \strokec5 );\cb1 \
-\cb3                 els.p2Panel.classList.add(\cf12 \strokec12 'active-turn'\cf0 \strokec5 );\cb1 \
-\cb3             \}\cb1 \
-\
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (!gameState.active && !gameState.winner) \{\cb1 \
-\cb3                  els.status.innerText = \cf12 \strokec12 "Ready to Start"\cf0 \strokec5 ;\cb1 \
-\cb3             \} \cf13 \strokec13 else\cf0 \strokec5  \cf13 \strokec13 if\cf0 \strokec5  (gameState.winner) \{\cb1 \
-\cb3                  \cf9 \strokec9 // Handled in handleWin\cf0 \cb1 \strokec5 \
-\cb3             \} \cf13 \strokec13 else\cf0 \strokec5  \{\cb1 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5  (isAiGame) \{\cb1 \
-\cb3                      els.status.innerText = gameState.turn === \cf12 \strokec12 'black'\cf0 \strokec5  ? \cf12 \strokec12 "YOUR TURN"\cf0 \strokec5  : \cf12 \strokec12 "AI IS THINKING..."\cf0 \strokec5 ;\cb1 \
-\cb3                      els.status.style.color = gameState.turn === \cf12 \strokec12 'black'\cf0 \strokec5  ? \cf12 \strokec12 "#2ecc71"\cf0 \strokec5  : \cf12 \strokec12 "#8e44ad"\cf0 \strokec5 ;\cb1 \
-\cb3                 \} \cf13 \strokec13 else\cf0 \strokec5  \cf13 \strokec13 if\cf0 \strokec5  (isLocal) \{\cb1 \
-\cb3                     els.status.innerText = \cf12 \strokec12 `\cf0 \strokec5 $\{gameState.turn.toUpperCase()\}\cf12 \strokec12 'S TURN`\cf0 \strokec5 ;\cb1 \
-\cb3                     els.status.style.color = \cf12 \strokec12 "white"\cf0 \strokec5 ;\cb1 \
-\cb3                 \} \cf13 \strokec13 else\cf0 \strokec5  \{\cb1 \
-\cb3                     \cf13 \strokec13 const\cf0 \strokec5  isMyTurn = gameState.turn === gameState.myColor;\cb1 \
-\cb3                     els.status.innerText = isMyTurn ? \cf12 \strokec12 "YOUR TURN"\cf0 \strokec5  : \cf12 \strokec12 "OPPONENT'S TURN"\cf0 \strokec5 ;\cb1 \
-\cb3                     els.status.style.color = isMyTurn ? \cf12 \strokec12 "#2ecc71"\cf0 \strokec5  : \cf12 \strokec12 "#e74c3c"\cf0 \strokec5 ;\cb1 \
-\cb3                 \}\cb1 \
-\cb3             \}\cb1 \
-\cb3             els.undoCount.innerText = gameState.undoCount;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- NETWORK & PEERJS ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  initPeer(callback) \{\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (peer) peer.destroy();\cb1 \
-\cb3             peer = \cf13 \strokec13 new\cf0 \strokec5  \cf14 \strokec14 Peer\cf0 \strokec5 (\cf13 \strokec13 null\cf0 \strokec5 , \{ debug: \cf15 \strokec15 1\cf0 \strokec5  \});\cb1 \
-\cb3             peer.on(\cf12 \strokec12 'open'\cf0 \strokec5 , (id) => \{\cb1 \
-\cb3                 myId = id;\cb1 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5  (callback) callback(id);\cb1 \
-\cb3             \});\cb1 \
-\cb3             peer.on(\cf12 \strokec12 'connection'\cf0 \strokec5 , (c) => \{\cb1 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5 (conn) \{ c.close(); \cf13 \strokec13 return\cf0 \strokec5 ; \} \cb1 \
-\cb3                 setupConnection(c);\cb1 \
-\cb3             \});\cb1 \
-\cb3             peer.on(\cf12 \strokec12 'error'\cf0 \strokec5 , (err) => alert(\cf12 \strokec12 "Connection Error: "\cf0 \strokec5  + err.type));\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  createGame() \{\cb1 \
-\cb3             isHost = \cf13 \strokec13 true\cf0 \strokec5 ;\cb1 \
-\cb3             isLocal = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3             isAiGame = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3             els.p1Name.innerText = \cf12 \strokec12 "You (Host)"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Name.innerText = \cf12 \strokec12 "Opponent"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Role.innerText = \cf12 \strokec12 "Guest"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Avatar.innerHTML = \cf12 \strokec12 '<i class="fas fa-robot"></i>'\cf0 \strokec5 ;\cb1 \
-\cb3             els.btnDice.style.display = \cf12 \strokec12 'block'\cf0 \strokec5 ; \cb1 \
-\cb3             \cb1 \
-\cb3             document.getElementById(\cf12 \strokec12 'initial-actions'\cf0 \strokec5 ).style.display = \cf12 \strokec12 'none'\cf0 \strokec5 ;\cb1 \
-\cb3             document.getElementById(\cf12 \strokec12 'waiting-area'\cf0 \strokec5 ).style.display = \cf12 \strokec12 'block'\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             initPeer((id) => \{\cb1 \
-\cb3                 document.getElementById(\cf12 \strokec12 'my-peer-id'\cf0 \strokec5 ).value = id;\cb1 \
-\cb3             \});\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  joinGame() \{\cb1 \
-\cb3             isHost = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3             isLocal = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3             isAiGame = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3             els.p1Name.innerText = \cf12 \strokec12 "Opponent (Host)"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Name.innerText = \cf12 \strokec12 "You"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Role.innerText = \cf12 \strokec12 "Guest"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Avatar.innerHTML = \cf12 \strokec12 '<i class="fas fa-robot"></i>'\cf0 \strokec5 ;\cb1 \
-\cb3             els.btnDice.style.display = \cf12 \strokec12 'none'\cf0 \strokec5 ; \cb1 \
-\
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  hostId = document.getElementById(\cf12 \strokec12 'join-id-input'\cf0 \strokec5 ).value.trim();\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5 (!hostId) \cf13 \strokec13 return\cf0 \strokec5  alert(\cf12 \strokec12 "Enter ID"\cf0 \strokec5 );\cb1 \
-\cb3             \cb1 \
-\cb3             initPeer((id) => \{\cb1 \
-\cb3                 \cf13 \strokec13 const\cf0 \strokec5  c = peer.connect(hostId);\cb1 \
-\cb3                 setupConnection(c);\cb1 \
-\cb3             \});\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  startLocalGame() \{\cb1 \
-\cb3             isLocal = \cf13 \strokec13 true\cf0 \strokec5 ;\cb1 \
-\cb3             isHost = \cf13 \strokec13 true\cf0 \strokec5 ; \cb1 \
-\cb3             isAiGame = \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3             els.p1Name.innerText = \cf12 \strokec12 "Player 1"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Name.innerText = \cf12 \strokec12 "Player 2"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Role.innerText = \cf12 \strokec12 "Local"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Avatar.innerHTML = \cf12 \strokec12 '<i class="fas fa-user"></i>'\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             screens.lobby.classList.remove(\cf12 \strokec12 'active-screen'\cf0 \strokec5 );\cb1 \
-\cb3             screens.game.classList.add(\cf12 \strokec12 'active-screen'\cf0 \strokec5 );\cb1 \
-\cb3             \cb1 \
-\cb3             startGame(\cf13 \strokec13 true\cf0 \strokec5 );\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  startAiGame() \{\cb1 \
-\cb3             isLocal = \cf13 \strokec13 true\cf0 \strokec5 ; \cf9 \strokec9 // AI uses local logic for board\cf0 \cb1 \strokec5 \
-\cb3             isHost = \cf13 \strokec13 true\cf0 \strokec5 ;\cb1 \
-\cb3             isAiGame = \cf13 \strokec13 true\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             els.p1Name.innerText = \cf12 \strokec12 "You"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Name.innerText = \cf12 \strokec12 "Gemini AI \uc0\u10024 "\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Role.innerText = \cf12 \strokec12 "Grandmaster"\cf0 \strokec5 ;\cb1 \
-\cb3             els.p2Avatar.innerHTML = \cf12 \strokec12 '<i class="fas fa-brain"></i>'\cf0 \strokec5 ;\cb1 \
-\cb3             \cb1 \
-\cb3             screens.lobby.classList.remove(\cf12 \strokec12 'active-screen'\cf0 \strokec5 );\cb1 \
-\cb3             screens.game.classList.add(\cf12 \strokec12 'active-screen'\cf0 \strokec5 );\cb1 \
-\cb3             \cb1 \
-\cb3             startGame(\cf13 \strokec13 true\cf0 \strokec5 );\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  setupConnection(c) \{\cb1 \
-\cb3             conn = c;\cb1 \
-\cb3             conn.on(\cf12 \strokec12 'open'\cf0 \strokec5 , () => \{\cb1 \
-\cb3                 console.log(\cf12 \strokec12 "Connected"\cf0 \strokec5 );\cb1 \
-\cb3                 screens.lobby.classList.remove(\cf12 \strokec12 'active-screen'\cf0 \strokec5 );\cb1 \
-\cb3                 screens.game.classList.add(\cf12 \strokec12 'active-screen'\cf0 \strokec5 );\cb1 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5  (isHost) \{\cb1 \
-\cb3                     applyColors(\cf12 \strokec12 'black'\cf0 \strokec5 );\cb1 \
-\cb3                     startGame();\cb1 \
-\cb3                 \}\cb1 \
-\cb3             \});\cb1 \
-\cb3             conn.on(\cf12 \strokec12 'data'\cf0 \strokec5 , (data) => handleData(data));\cb1 \
-\cb3             conn.on(\cf12 \strokec12 'close'\cf0 \strokec5 , () => \{\cb1 \
-\cb3                 alert(\cf12 \strokec12 "Opponent Disconnected"\cf0 \strokec5 );\cb1 \
-\cb3                 resetLobby();\cb1 \
-\cb3             \});\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  handleData(data) \{\cb1 \
-\cb3             \cf13 \strokec13 switch\cf0 \strokec5 (data.type) \{\cb1 \
-\cb3                 \cf13 \strokec13 case\cf0 \strokec5  \cf12 \strokec12 'move'\cf0 \strokec5 : makeMove(data.r, data.c, data.color); \cf13 \strokec13 break\cf0 \strokec5 ;\cb1 \
-\cb3                 \cf13 \strokec13 case\cf0 \strokec5  \cf12 \strokec12 'setup_colors'\cf0 \strokec5 : applyColors(data.p1Color); startGame(); \cf13 \strokec13 break\cf0 \strokec5 ;\cb1 \
-\cb3                 \cf13 \strokec13 case\cf0 \strokec5  \cf12 \strokec12 'undo_request'\cf0 \strokec5 : showApprovalModal(\cf12 \strokec12 "Undo Request"\cf0 \strokec5 , \cf12 \strokec12 "Opponent wants to undo."\cf0 \strokec5 , \cf12 \strokec12 'undo'\cf0 \strokec5 ); audio.notify.play().\cf13 \strokec13 catch\cf0 \strokec5 (()=>\{\}); \cf13 \strokec13 break\cf0 \strokec5 ;\cb1 \
-\cb3                 \cf13 \strokec13 case\cf0 \strokec5  \cf12 \strokec12 'undo_approve'\cf0 \strokec5 : performUndo(); gameState.undoCount--; updateUI(); els.btnUndo.disabled = \cf13 \strokec13 false\cf0 \strokec5 ; \cf13 \strokec13 break\cf0 \strokec5 ;\cb1 \
-\cb3                 \cf13 \strokec13 case\cf0 \strokec5  \cf12 \strokec12 'undo_reject'\cf0 \strokec5 : alert(\cf12 \strokec12 "Undo Denied"\cf0 \strokec5 ); els.btnUndo.disabled = \cf13 \strokec13 false\cf0 \strokec5 ; \cf13 \strokec13 break\cf0 \strokec5 ;\cb1 \
-\cb3                 \cf13 \strokec13 case\cf0 \strokec5  \cf12 \strokec12 'restart_request'\cf0 \strokec5 : showApprovalModal(\cf12 \strokec12 "Rematch?"\cf0 \strokec5 , \cf12 \strokec12 "Opponent wants to play again."\cf0 \strokec5 , \cf12 \strokec12 'restart'\cf0 \strokec5 ); audio.notify.play().\cf13 \strokec13 catch\cf0 \strokec5 (()=>\{\}); \cf13 \strokec13 break\cf0 \strokec5 ;\cb1 \
-\cb3                 \cf13 \strokec13 case\cf0 \strokec5  \cf12 \strokec12 'restart_approve'\cf0 \strokec5 : startGame(); \cf13 \strokec13 break\cf0 \strokec5 ;\cb1 \
-\cb3             \}\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- APPROVAL MODAL ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 let\cf0 \strokec5  currentApprovalType = \cf13 \strokec13 null\cf0 \strokec5 ;\cb1 \
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  showApprovalModal(title, msg, type) \{\cb1 \
-\cb3             els.approvalTitle.innerText = title;\cb1 \
-\cb3             els.approvalMsg.innerText = msg;\cb1 \
-\cb3             els.approvalModal.style.display = \cf12 \strokec12 'flex'\cf0 \strokec5 ;\cb1 \
-\cb3             currentApprovalType = type;\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  handleApproval(allowed) \{\cb1 \
-\cb3             els.approvalModal.style.display = \cf12 \strokec12 'none'\cf0 \strokec5 ;\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (currentApprovalType === \cf12 \strokec12 'undo'\cf0 \strokec5 ) \{\cb1 \
-\cb3                 conn.send(\{ type: allowed ? \cf12 \strokec12 'undo_approve'\cf0 \strokec5  : \cf12 \strokec12 'undo_reject'\cf0 \strokec5  \});\cb1 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5  (allowed) performUndo();\cb1 \
-\cb3             \} \cf13 \strokec13 else\cf0 \strokec5  \cf13 \strokec13 if\cf0 \strokec5  (currentApprovalType === \cf12 \strokec12 'restart'\cf0 \strokec5 ) \{\cb1 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5  (allowed) \{\cb1 \
-\cb3                     conn.send(\{ type: \cf12 \strokec12 'restart_approve'\cf0 \strokec5  \});\cb1 \
-\cb3                     startGame();\cb1 \
-\cb3                 \}\cb1 \
-\cb3             \}\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  requestRestart() \{\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5  (isAiGame || isLocal) \{\cb1 \
-\cb3                 startGame(\cf13 \strokec13 true\cf0 \strokec5 );\cb1 \
-\cb3             \} \cf13 \strokec13 else\cf0 \strokec5  \{\cb1 \
-\cb3                 conn.send(\{ type: \cf12 \strokec12 'restart_request'\cf0 \strokec5  \});\cb1 \
-\cb3                 els.btnRematch.innerText = \cf12 \strokec12 "Request Sent..."\cf0 \strokec5 ;\cb1 \
-\cb3                 els.btnRematch.disabled = \cf13 \strokec13 true\cf0 \strokec5 ;\cb1 \
-\cb3             \}\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf9 \strokec9 // --- UTILS ---\cf0 \cb1 \strokec5 \
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  checkWin(r, c, color) \{\cb1 \
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  dirs = [[\cf15 \strokec15 0\cf0 \strokec5 ,\cf15 \strokec15 1\cf0 \strokec5 ], [\cf15 \strokec15 1\cf0 \strokec5 ,\cf15 \strokec15 0\cf0 \strokec5 ], [\cf15 \strokec15 1\cf0 \strokec5 ,\cf15 \strokec15 1\cf0 \strokec5 ], [\cf15 \strokec15 1\cf0 \strokec5 ,-\cf15 \strokec15 1\cf0 \strokec5 ]];\cb1 \
-\cb3             \cf13 \strokec13 for\cf0 \strokec5  (\cf13 \strokec13 let\cf0 \strokec5  [dr, dc] \cf13 \strokec13 of\cf0 \strokec5  dirs) \{\cb1 \
-\cb3                 \cf13 \strokec13 let\cf0 \strokec5  count = \cf15 \strokec15 1\cf0 \strokec5 ;\cb1 \
-\cb3                 \cf13 \strokec13 for\cf0 \strokec5  (\cf13 \strokec13 let\cf0 \strokec5  i=\cf15 \strokec15 1\cf0 \strokec5 ; i<\cf15 \strokec15 5\cf0 \strokec5 ; i++) \{\cb1 \
-\cb3                     \cf13 \strokec13 if\cf0 \strokec5  (isValid(r+dr*i, c+dc*i) && gameState.board[r+dr*i][c+dc*i] === color) count++; \cf13 \strokec13 else\cf0 \strokec5  \cf13 \strokec13 break\cf0 \strokec5 ;\cb1 \
-\cb3                 \}\cb1 \
-\cb3                 \cf13 \strokec13 for\cf0 \strokec5  (\cf13 \strokec13 let\cf0 \strokec5  i=\cf15 \strokec15 1\cf0 \strokec5 ; i<\cf15 \strokec15 5\cf0 \strokec5 ; i++) \{\cb1 \
-\cb3                     \cf13 \strokec13 if\cf0 \strokec5  (isValid(r-dr*i, c-dc*i) && gameState.board[r-dr*i][c-dc*i] === color) count++; \cf13 \strokec13 else\cf0 \strokec5  \cf13 \strokec13 break\cf0 \strokec5 ;\cb1 \
-\cb3                 \}\cb1 \
-\cb3                 \cf13 \strokec13 if\cf0 \strokec5  (count >= \cf15 \strokec15 5\cf0 \strokec5 ) \cf13 \strokec13 return\cf0 \strokec5  \cf13 \strokec13 true\cf0 \strokec5 ;\cb1 \
-\cb3             \}\cb1 \
-\cb3             \cf13 \strokec13 return\cf0 \strokec5  \cf13 \strokec13 false\cf0 \strokec5 ;\cb1 \
-\cb3         \}\cb1 \
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  isValid(r, c) \{ \cf13 \strokec13 return\cf0 \strokec5  r>=\cf15 \strokec15 0\cf0 \strokec5  && r<\cf14 \strokec14 BOARD_SIZE\cf0 \strokec5  && c>=\cf15 \strokec15 0\cf0 \strokec5  && c<\cf14 \strokec14 BOARD_SIZE\cf0 \strokec5 ; \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  copyToClipboard() \{\cb1 \
-\cb3             \cf13 \strokec13 const\cf0 \strokec5  el = document.getElementById(\cf12 \strokec12 'my-peer-id'\cf0 \strokec5 );\cb1 \
-\cb3             el.select();\cb1 \
-\cb3             document.execCommand(\cf12 \strokec12 'copy'\cf0 \strokec5 );\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  leaveGame() \{\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5 (conn) conn.close();\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5 (peer) peer.destroy();\cb1 \
-\cb3             location.reload();\cb1 \
-\cb3         \}\cb1 \
-\cb3         \cb1 \
-\cb3         \cf13 \strokec13 function\cf0 \strokec5  resetLobby() \{\cb1 \
-\cb3             \cf13 \strokec13 if\cf0 \strokec5 (peer) peer.destroy();\cb1 \
-\cb3             location.reload();\cb1 \
-\cb3         \}\cb1 \
-\
-\cb3         initBoard();\cb1 \
-\cb3     \cf6 \strokec6 </\cf7 \strokec7 script\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\pard\pardeftab720\partightenfactor0
-\cf6 \cb3 \strokec6 </\cf7 \strokec7 body\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-\cf6 \cb3 \strokec6 </\cf7 \strokec7 html\cf6 \strokec6 >\cf0 \cb1 \strokec5 \
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: white;
+            overflow: hidden; /* Prevent scrolling during play */
+        }
+
+        /* --- Screens --- */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .active-screen {
+            display: flex;
+        }
+
+        /* --- Lobby Styles --- */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s, background-color 0.2s;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .btn-create { background-color: #27ae60; }
+        .btn-join { background-color: #2980b9; }
+        .btn-copy { background-color: #f39c12; }
+        .btn-local { background-color: #7f8c8d; }
+        .btn-ai { background: linear-gradient(45deg, #8e44ad, #3498db); border: 1px solid rgba(255,255,255,0.2); }
+        .btn-ai:hover { filter: brightness(1.2); }
+        .btn-danger { background-color: #c0392b; }
+        .btn-secondary { background-color: #7f8c8d; }
+
+        /* --- Game Layout --- */
+        #game-layout {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .player-panel {
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 15px;
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .player-panel.active-turn {
+            box-shadow: 0 0 15px #f1c40f;
+            border: 2px solid #f1c40f;
+        }
+
+        .avatar {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #bdc3c7;
+            position: relative;
+        }
+
+        .ai-thinking .avatar {
+            animation: pulse 1.5s infinite;
+            color: var(--ai-color);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); text-shadow: 0 0 0 rgba(142, 68, 173, 0.4); }
+            50% { transform: scale(1.1); text-shadow: 0 0 20px rgba(142, 68, 173, 0.8); }
+            100% { transform: scale(1); text-shadow: 0 0 0 rgba(142, 68, 173, 0.4); }
+        }
+
+        /* Chat/Speech Bubble for AI */
+        .speech-bubble {
+            position: absolute;
+            top: -60px;
+            background: white;
+            color: #333;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            width: 180px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: none; /* Hidden by default */
+            z-index: 20;
+            pointer-events: none;
+        }
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px 8px 0;
+            border-style: solid;
+            border-color: white transparent transparent transparent;
+        }
+
+        .player-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .player-role {
+            font-size: 0.8rem;
+            color: #95a5a6;
+            margin-bottom: 15px;
+        }
+
+        .stone-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            border: 2px solid transparent;
+        }
+        .stone-indicator.black { background: radial-gradient(circle at 30% 30%, #555, #000); border-color: #333; }
+        .stone-indicator.white { background: radial-gradient(circle at 30% 30%, #fff, #ddd); }
+        .stone-indicator.none { background: rgba(255,255,255,0.1); border: 2px dashed #7f8c8d; }
+
+        .panel-controls {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* --- Board --- */
+        .board-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .board-container {
+            padding: 15px;
+            background-color: var(--wood-primary);
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background-image: linear-gradient(90deg, rgba(139,90,43,0.1) 0%, rgba(139,90,43,0) 50%, rgba(139,90,43,0.1) 100%);
+        }
+
+        #gomoku-board {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            width: 450px;
+            height: 450px;
+            border: 2px solid var(--wood-dark);
+            background: transparent;
+        }
+
+        .cell {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background-color: var(--wood-dark); z-index: 0; }
+        .cell::after { content: ''; position: absolute; left: 50%; top: 0; height: 100%; width: 1px; background-color: var(--wood-dark); z-index: 0; }
+
+        .stone {
+            width: 85%;
+            height: 85%;
+            border-radius: 50%;
+            z-index: 1;
+            box-shadow: 2px 2px 4px var(--stone-shadow);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .stone.placed { opacity: 1; transform: scale(1); }
+        .stone.black { background: radial-gradient(circle at 30% 30%, #555, #000); }
+        .stone.white { background: radial-gradient(circle at 30% 30%, #fff, #ddd); border: 1px solid #ccc; }
+        
+        .last-move::after {
+            content: ''; position: absolute; width: 15%; height: 15%; background: #e74c3c;
+            border-radius: 50%; top: 42.5%; left: 42.5%; z-index: 2;
+        }
+
+        /* --- Modals --- */
+        .modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85); display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white; color: #333; padding: 30px; border-radius: 10px;
+            text-align: center; max-width: 400px; width: 90%;
+        }
+        .modal h2 { margin-top: 0; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            #game-layout { flex-direction: column; }
+            .player-panel { width: 90%; flex-direction: row; justify-content: space-between; padding: 10px 20px; }
+            .panel-controls { width: auto; flex-direction: row; }
+            #gomoku-board { width: 90vw; height: 90vw; max-width: 400px; max-height: 400px; }
+            .speech-bubble { top: auto; bottom: 100%; left: 10%; transform: none; margin-bottom: 10px; }
+            .speech-bubble::after { top: 100%; bottom: auto; border-color: white transparent transparent transparent; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOBBY SCREEN -->
+    <div id="lobby-screen" class="screen active-screen">
+        <h1 style="font-size: 3rem; margin-bottom: 20px;"><i class="fas fa-chess-board"></i> Gomoku</h1>
+        <div class="card">
+            <div id="initial-actions">
+                <button class="btn btn-create" onclick="createGame()">
+                    <i class="fas fa-plus-circle"></i> Create New Game
+                </button>
+                <div style="margin: 15px 0; color: #7f8c8d;">- OR -</div>
+                <input type="text" id="join-id-input" placeholder="Paste Game ID Here">
+                <button class="btn btn-join" onclick="joinGame()">
+                    <i class="fas fa-sign-in-alt"></i> Join Game
+                </button>
+                <div style="margin: 15px 0; color: #7f8c8d; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">Solo Modes</div>
+                <button class="btn btn-ai" onclick="startAiGame()">
+                    <i class="fas fa-brain"></i> Play vs Gemini AI ✨
+                </button>
+                <button class="btn btn-local" onclick="startLocalGame()">
+                    <i class="fas fa-user-friends"></i> Practice Locally
+                </button>
+            </div>
+
+            <div id="waiting-area" style="display: none;">
+                <p>Send this ID to your friend:</p>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="my-peer-id" readonly>
+                    <button class="btn btn-copy" onclick="copyToClipboard()" style="width: auto;"><i class="fas fa-copy"></i></button>
+                </div>
+                <div class="loader" style="margin-top: 20px;"><i class="fas fa-spinner fa-spin fa-2x"></i></div>
+                <p>Waiting for opponent...</p>
+                <button class="btn btn-danger" onclick="resetLobby()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen" class="screen">
+        <div id="game-layout">
+            
+            <!-- Player 1 (Left - You/Host) -->
+            <div class="player-panel" id="panel-p1">
+                <div style="text-align: center;">
+                    <div class="avatar"><i class="fas fa-user-astronaut"></i></div>
+                    <div class="player-name" id="p1-name">You</div>
+                    <div class="player-role" id="p1-role">Host</div>
+                </div>
+                <div class="stone-indicator" id="p1-stone"></div>
+                <div class="panel-controls">
+                    <button id="btn-dice" class="btn btn-copy" onclick="randomizeColors()" style="display:none;">
+                        <i class="fas fa-dice"></i> Dice
+                    </button>
+                    <button id="btn-undo" class="btn btn-secondary" onclick="requestUndo()">
+                        <i class="fas fa-undo"></i> Undo (<span id="undo-count">4</span>)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Board -->
+            <div class="board-wrapper">
+                <div class="board-container">
+                    <div id="gomoku-board"></div>
+                </div>
+                <div style="margin-top: 15px; font-weight: bold; font-size: 1.2rem; min-height: 24px;">
+                    <span id="game-status-text">Waiting to start...</span>
+                </div>
+            </div>
+
+            <!-- Player 2 (Right - Opponent/AI) -->
+            <div class="player-panel" id="panel-p2">
+                <div class="speech-bubble" id="ai-bubble">Thinking...</div>
+                <div style="text-align: center;">
+                    <div class="avatar" id="p2-avatar"><i class="fas fa-robot"></i></div>
+                    <div class="player-name" id="p2-name">Opponent</div>
+                    <div class="player-role" id="p2-role">Guest</div>
+                </div>
+                <div class="stone-indicator" id="p2-stone"></div>
+                <div class="panel-controls">
+                    <!-- Opponent controls usually hidden -->
+                </div>
+            </div>
+
+        </div>
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="btn btn-create" id="btn-rematch" onclick="requestRestart()" style="display:none; width: auto; padding: 10px 30px;">
+                <i class="fas fa-redo"></i> Rematch
+            </button>
+            <button class="btn btn-danger" onclick="leaveGame()" style="width: auto; padding: 10px 30px;">
+                <i class="fas fa-door-open"></i> Leave
+            </button>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Approval Modal (Undo/Restart) -->
+    <div id="approval-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="approval-title">Request</h2>
+            <p id="approval-msg">Opponent wants to...</p>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-create" onclick="handleApproval(true)">Allow</button>
+                <button class="btn btn-danger" onclick="handleApproval(false)">Deny</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GEMINI CONFIG ---
+        const apiKey = "AIzaSyAIBzCT3BlcvYsoG_GLicoeSfHwXchgcAY"; 
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+        // --- GAME CONFIG ---
+        const BOARD_SIZE = 15;
+        const WIN_COUNT = 5;
+        const MAX_UNDOS = 4;
+        
+        // --- STATE ---
+        let peer = null;
+        let conn = null;
+        let myId = null;
+        let isHost = false;
+        let isLocal = false;
+        let isAiGame = false;
+        
+        // Game State
+        let gameState = {
+            board: [],
+            history: [], // Stack of moves: {r, c, color}
+            turn: 'black', // 'black' or 'white'
+            myColor: null, // 'black', 'white', or null (if spectator/local)
+            p1Color: 'black', // Visual tracking for left panel
+            active: false,
+            undoCount: MAX_UNDOS,
+            winner: null
+        };
+
+        // --- SOUNDS ---
+        const audio = {
+            place: new Audio('https://rpg.hamsterrepublic.com/wiki-images/2/21/Collision8.ogg'),
+            win: new Audio('https://themushroomkingdom.net/sounds/wav/smw/smw_course_clear.wav'),
+            notify: new Audio('https://rpg.hamsterrepublic.com/wiki-images/d/d7/Strange_Echo_3.ogg')
+        };
+
+        // --- DOM ---
+        const screens = { lobby: document.getElementById('lobby-screen'), game: document.getElementById('game-screen') };
+        const els = {
+            board: document.getElementById('gomoku-board'),
+            status: document.getElementById('game-status-text'),
+            p1Panel: document.getElementById('panel-p1'),
+            p2Panel: document.getElementById('panel-p2'),
+            p1Stone: document.getElementById('p1-stone'),
+            p2Stone: document.getElementById('p2-stone'),
+            p1Name: document.getElementById('p1-name'),
+            p2Name: document.getElementById('p2-name'),
+            p1Role: document.getElementById('p1-role'), 
+            p2Role: document.getElementById('p2-role'), 
+            p2Avatar: document.getElementById('p2-avatar'),
+            aiBubble: document.getElementById('ai-bubble'),
+            btnDice: document.getElementById('btn-dice'),
+            btnUndo: document.getElementById('btn-undo'),
+            btnRematch: document.getElementById('btn-rematch'),
+            undoCount: document.getElementById('undo-count'),
+            approvalModal: document.getElementById('approval-modal'),
+            approvalTitle: document.getElementById('approval-title'),
+            approvalMsg: document.getElementById('approval-msg')
+        };
+
+        // --- INITIALIZATION ---
+        function initBoard() {
+            els.board.innerHTML = '';
+            gameState.board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(null));
+            gameState.history = [];
+            
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                for (let c = 0; c < BOARD_SIZE; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+                    cell.onclick = () => handleCellClick(r, c);
+                    
+                    const stone = document.createElement('div');
+                    stone.classList.add('stone');
+                    cell.appendChild(stone);
+                    els.board.appendChild(cell);
+                }
+            }
+        }
+
+        // --- CORE GAMEPLAY ---
+        function startGame(local = false) {
+            isLocal = local;
+            gameState.active = true;
+            gameState.turn = 'black';
+            gameState.winner = null;
+            gameState.undoCount = MAX_UNDOS;
+            
+            // Default Colors if not randomized
+            if (!gameState.p1Color) gameState.p1Color = 'black'; 
+            
+            // Set myColor logic
+            if (isLocal) {
+                gameState.myColor = 'both'; // Or 'black' if AI game
+                gameState.p1Color = 'black';
+            } else {
+                gameState.myColor = isHost ? gameState.p1Color : (gameState.p1Color === 'black' ? 'white' : 'black');
+            }
+
+            // AI Game Setup
+            if (isAiGame) {
+                gameState.myColor = 'black'; // Player is always Black vs AI for simplicity
+                gameState.p1Color = 'black';
+                els.p2Panel.classList.remove('ai-thinking');
+                els.aiBubble.style.display = 'none';
+            }
+
+            els.btnRematch.style.display = 'none';
+            els.btnDice.style.display = 'none'; 
+            
+            updateUI();
+            initBoard();
+            els.undoCount.innerText = gameState.undoCount;
+            els.btnUndo.disabled = false;
+        }
+
+        function handleCellClick(r, c) {
+            if (!gameState.active) return;
+            if (gameState.board[r][c] !== null) return;
+            
+            // Turn Checks
+            if (!isLocal && gameState.turn !== gameState.myColor) return;
+            if (isAiGame && gameState.turn === 'white') return; // AI's turn
+
+            makeMove(r, c, gameState.turn);
+
+            // Side Effects
+            if (!isLocal && conn) {
+                conn.send({ type: 'move', r, c, color: gameState.turn });
+            }
+
+            // Trigger AI
+            if (isAiGame && gameState.active && gameState.turn === 'white') {
+                triggerAiTurn();
+            }
+        }
+
+        function makeMove(r, c, color) {
+            gameState.board[r][c] = color;
+            gameState.history.push({r, c, color});
+            
+            audio.place.play().catch(e => {});
+
+            const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+            const stone = cell.querySelector('.stone');
+            stone.classList.add('placed', color);
+            
+            // Highlight Last Move
+            document.querySelectorAll('.last-move').forEach(el => el.classList.remove('last-move'));
+            stone.classList.add('last-move');
+
+            if (checkWin(r, c, color)) {
+                handleWin(color);
+            } else {
+                gameState.turn = (gameState.turn === 'black') ? 'white' : 'black';
+                updateUI();
+            }
+        }
+
+        function handleWin(color) {
+            gameState.active = false;
+            gameState.winner = color;
+            audio.win.play().catch(e => {});
+            
+            let winText = "";
+            if (isLocal) {
+                if (isAiGame) winText = (color === 'black' ? "YOU WIN!" : "AI WINS!");
+                else winText = color.toUpperCase() + " WINS!";
+            } else {
+                winText = (color === gameState.myColor) ? "YOU WIN!" : "OPPONENT WINS!";
+            }
+            els.status.innerText = winText;
+            els.status.style.color = "#f1c40f";
+            
+            els.btnRematch.style.display = 'inline-block';
+            els.btnUndo.disabled = true;
+            els.p2Panel.classList.remove('ai-thinking');
+        }
+
+        // --- GEMINI AI INTEGRATION ---
+        async function triggerAiTurn() {
+            // Visuals
+            els.p2Panel.classList.add('ai-thinking');
+            els.status.innerText = "Gemini AI is thinking...";
+            els.aiBubble.style.display = 'none';
+
+            // 1. Build Prompt based on History
+            // We replay history to describe the game state to the LLM. 
+            // This is efficient and gives the "flow" of the game.
+            let promptHistory = gameState.history.map((m, i) => 
+                `Turn ${i+1} (${m.color}): Row ${m.r}, Col ${m.c}`
+            ).join("\n");
+
+            const systemPrompt = `
+                You are a world-class Gomoku (Five-in-a-Row) Grandmaster playing White. 
+                The board is 15x15 (0-indexed, 0-14).
+                
+                Your Goal: 
+                1. Win if you have 4 in a row.
+                2. Block opponent if they have 3 or 4 in a row.
+                3. Build your own lines.
+                
+                Current Board History:
+                ${promptHistory}
+
+                Task:
+                Determine the BEST move for White. 
+                Return strictly JSON format:
+                {
+                    "row": integer (0-14),
+                    "col": integer (0-14),
+                    "message": "Short witty banter or strategic thought (max 10 words)"
+                }
+                Do not explain outside the JSON.
+            `;
+
+            // 2. Call API
+            try {
+                const response = await fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: systemPrompt }] }]
+                    })
+                });
+
+                if (!response.ok) throw new Error("API Error");
+                const data = await response.json();
+                const text = data.candidates[0].content.parts[0].text;
+                
+                // 3. Parse JSON (Handle potential markdown wrapping)
+                const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const move = JSON.parse(jsonStr);
+
+                // 4. Validate and Apply
+                if (isValid(move.row, move.col) && gameState.board[move.row][move.col] === null) {
+                    makeMove(move.row, move.col, 'white');
+                    // Show Bubble
+                    els.aiBubble.innerText = move.message;
+                    els.aiBubble.style.display = 'block';
+                } else {
+                    // Fallback: Random Empty Spot (prevent crash)
+                    console.error("AI returned invalid move", move);
+                    fallbackRandomMove();
+                }
+
+            } catch (err) {
+                console.error("Gemini Failure:", err);
+                fallbackRandomMove();
+                els.aiBubble.innerText = "*Circuits overheating*";
+                els.aiBubble.style.display = 'block';
+            } finally {
+                els.p2Panel.classList.remove('ai-thinking');
+            }
+        }
+
+        function fallbackRandomMove() {
+            // Simple random fallback so game doesn't hang
+            let r, c;
+            let attempts = 0;
+            do {
+                r = Math.floor(Math.random() * BOARD_SIZE);
+                c = Math.floor(Math.random() * BOARD_SIZE);
+                attempts++;
+            } while (gameState.board[r][c] !== null && attempts < 100);
+            
+            if (gameState.board[r][c] === null) {
+                makeMove(r, c, 'white');
+            }
+        }
+
+        // --- UNDO SYSTEM ---
+        function requestUndo() {
+            if (!gameState.active && !gameState.winner) return;
+            if (gameState.undoCount <= 0) return alert("No undos left!");
+            if (gameState.history.length === 0) return;
+            
+            if (isAiGame) {
+                // In AI game, undo TWICE to get back to user turn
+                // Unless AI is currently thinking... then block
+                if (gameState.turn === 'white') return alert("Wait for AI to finish!");
+                
+                performUndo(); // Undo AI move
+                performUndo(); // Undo Player move
+                gameState.undoCount--;
+                updateUI();
+                return;
+            }
+
+            if (isLocal) {
+                performUndo(); 
+                return;
+            }
+
+            // Network Request
+            els.btnUndo.innerText = "Waiting...";
+            els.btnUndo.disabled = true;
+            conn.send({ type: 'undo_request' });
+        }
+
+        function performUndo() {
+            if (gameState.history.length === 0) return;
+            const lastMove = gameState.history.pop();
+            
+            gameState.board[lastMove.r][lastMove.c] = null;
+            
+            const cell = document.querySelector(`.cell[data-r="${lastMove.r}"][data-c="${lastMove.c}"]`);
+            const stone = cell.querySelector('.stone');
+            stone.className = 'stone'; 
+            
+            gameState.turn = lastMove.color;
+            gameState.active = true; 
+            gameState.winner = null;
+            els.btnRematch.style.display = 'none';
+
+            document.querySelectorAll('.last-move').forEach(el => el.classList.remove('last-move'));
+            if (gameState.history.length > 0) {
+                const prev = gameState.history[gameState.history.length - 1];
+                const prevCell = document.querySelector(`.cell[data-r="${prev.r}"][data-c="${prev.c}"]`);
+                if(prevCell) prevCell.querySelector('.stone').classList.add('last-move');
+            }
+            
+            updateUI();
+        }
+
+        // --- DICE / RANDOMIZE ---
+        function randomizeColors() {
+            const p1IsBlack = Math.random() < 0.5;
+            const p1Color = p1IsBlack ? 'black' : 'white';
+            conn.send({ type: 'setup_colors', p1Color: p1Color });
+            applyColors(p1Color);
+        }
+
+        function applyColors(p1Color) {
+            gameState.p1Color = p1Color;
+            if (isHost) {
+                gameState.myColor = p1Color;
+            } else {
+                gameState.myColor = (p1Color === 'black' ? 'white' : 'black');
+            }
+            updateUI();
+        }
+
+        // --- UI UPDATES ---
+        function updateUI() {
+            const p2Color = gameState.p1Color === 'black' ? 'white' : 'black';
+            
+            els.p1Stone.className = `stone-indicator ${gameState.p1Color}`;
+            els.p2Stone.className = `stone-indicator ${p2Color}`;
+            
+            if (gameState.turn === gameState.p1Color) {
+                els.p1Panel.classList.add('active-turn');
+                els.p2Panel.classList.remove('active-turn');
+            } else {
+                els.p1Panel.classList.remove('active-turn');
+                els.p2Panel.classList.add('active-turn');
+            }
+
+            if (!gameState.active && !gameState.winner) {
+                 els.status.innerText = "Ready to Start";
+            } else if (gameState.winner) {
+                 // Handled in handleWin
+            } else {
+                if (isAiGame) {
+                     els.status.innerText = gameState.turn === 'black' ? "YOUR TURN" : "AI IS THINKING...";
+                     els.status.style.color = gameState.turn === 'black' ? "#2ecc71" : "#8e44ad";
+                } else if (isLocal) {
+                    els.status.innerText = `${gameState.turn.toUpperCase()}'S TURN`;
+                    els.status.style.color = "white";
+                } else {
+                    const isMyTurn = gameState.turn === gameState.myColor;
+                    els.status.innerText = isMyTurn ? "YOUR TURN" : "OPPONENT'S TURN";
+                    els.status.style.color = isMyTurn ? "#2ecc71" : "#e74c3c";
+                }
+            }
+            els.undoCount.innerText = gameState.undoCount;
+        }
+
+        // --- NETWORK & PEERJS ---
+        function initPeer(callback) {
+            if (peer) peer.destroy();
+            peer = new Peer(null, { debug: 1 });
+            peer.on('open', (id) => {
+                myId = id;
+                if (callback) callback(id);
+            });
+            peer.on('connection', (c) => {
+                if(conn) { c.close(); return; } 
+                setupConnection(c);
+            });
+            peer.on('error', (err) => alert("Connection Error: " + err.type));
+        }
+
+        function createGame() {
+            isHost = true;
+            isLocal = false;
+            isAiGame = false;
+            els.p1Name.innerText = "You (Host)";
+            els.p2Name.innerText = "Opponent";
+            els.p2Role.innerText = "Guest";
+            els.p2Avatar.innerHTML = '<i class="fas fa-robot"></i>';
+            els.btnDice.style.display = 'block'; 
+            
+            document.getElementById('initial-actions').style.display = 'none';
+            document.getElementById('waiting-area').style.display = 'block';
+            
+            initPeer((id) => {
+                document.getElementById('my-peer-id').value = id;
+            });
+        }
+
+        function joinGame() {
+            isHost = false;
+            isLocal = false;
+            isAiGame = false;
+            els.p1Name.innerText = "Opponent (Host)";
+            els.p2Name.innerText = "You";
+            els.p2Role.innerText = "Guest";
+            els.p2Avatar.innerHTML = '<i class="fas fa-robot"></i>';
+            els.btnDice.style.display = 'none'; 
+
+            const hostId = document.getElementById('join-id-input').value.trim();
+            if(!hostId) return alert("Enter ID");
+            
+            initPeer((id) => {
+                const c = peer.connect(hostId);
+                setupConnection(c);
+            });
+        }
+
+        function startLocalGame() {
+            isLocal = true;
+            isHost = true; 
+            isAiGame = false;
+            els.p1Name.innerText = "Player 1";
+            els.p2Name.innerText = "Player 2";
+            els.p2Role.innerText = "Local";
+            els.p2Avatar.innerHTML = '<i class="fas fa-user"></i>';
+            
+            screens.lobby.classList.remove('active-screen');
+            screens.game.classList.add('active-screen');
+            
+            startGame(true);
+        }
+
+        function startAiGame() {
+            isLocal = true; // AI uses local logic for board
+            isHost = true;
+            isAiGame = true;
+            
+            els.p1Name.innerText = "You";
+            els.p2Name.innerText = "Gemini AI ✨";
+            els.p2Role.innerText = "Grandmaster";
+            els.p2Avatar.innerHTML = '<i class="fas fa-brain"></i>';
+            
+            screens.lobby.classList.remove('active-screen');
+            screens.game.classList.add('active-screen');
+            
+            startGame(true);
+        }
+
+        function setupConnection(c) {
+            conn = c;
+            conn.on('open', () => {
+                console.log("Connected");
+                screens.lobby.classList.remove('active-screen');
+                screens.game.classList.add('active-screen');
+                if (isHost) {
+                    applyColors('black');
+                    startGame();
+                }
+            });
+            conn.on('data', (data) => handleData(data));
+            conn.on('close', () => {
+                alert("Opponent Disconnected");
+                resetLobby();
+            });
+        }
+
+        function handleData(data) {
+            switch(data.type) {
+                case 'move': makeMove(data.r, data.c, data.color); break;
+                case 'setup_colors': applyColors(data.p1Color); startGame(); break;
+                case 'undo_request': showApprovalModal("Undo Request", "Opponent wants to undo.", 'undo'); audio.notify.play().catch(()=>{}); break;
+                case 'undo_approve': performUndo(); gameState.undoCount--; updateUI(); els.btnUndo.disabled = false; break;
+                case 'undo_reject': alert("Undo Denied"); els.btnUndo.disabled = false; break;
+                case 'restart_request': showApprovalModal("Rematch?", "Opponent wants to play again.", 'restart'); audio.notify.play().catch(()=>{}); break;
+                case 'restart_approve': startGame(); break;
+            }
+        }
+
+        // --- APPROVAL MODAL ---
+        let currentApprovalType = null;
+        function showApprovalModal(title, msg, type) {
+            els.approvalTitle.innerText = title;
+            els.approvalMsg.innerText = msg;
+            els.approvalModal.style.display = 'flex';
+            currentApprovalType = type;
+        }
+
+        function handleApproval(allowed) {
+            els.approvalModal.style.display = 'none';
+            if (currentApprovalType === 'undo') {
+                conn.send({ type: allowed ? 'undo_approve' : 'undo_reject' });
+                if (allowed) performUndo();
+            } else if (currentApprovalType === 'restart') {
+                if (allowed) {
+                    conn.send({ type: 'restart_approve' });
+                    startGame();
+                }
+            }
+        }
+
+        function requestRestart() {
+            if (isAiGame || isLocal) {
+                startGame(true);
+            } else {
+                conn.send({ type: 'restart_request' });
+                els.btnRematch.innerText = "Request Sent...";
+                els.btnRematch.disabled = true;
+            }
+        }
+
+        // --- UTILS ---
+        function checkWin(r, c, color) {
+            const dirs = [[0,1], [1,0], [1,1], [1,-1]];
+            for (let [dr, dc] of dirs) {
+                let count = 1;
+                for (let i=1; i<5; i++) {
+                    if (isValid(r+dr*i, c+dc*i) && gameState.board[r+dr*i][c+dc*i] === color) count++; else break;
+                }
+                for (let i=1; i<5; i++) {
+                    if (isValid(r-dr*i, c-dc*i) && gameState.board[r-dr*i][c-dc*i] === color) count++; else break;
+                }
+                if (count >= 5) return true;
+            }
+            return false;
+        }
+        function isValid(r, c) { return r>=0 && r<BOARD_SIZE && c>=0 && c<BOARD_SIZE; }
+
+        function copyToClipboard() {
+            const el = document.getElementById('my-peer-id');
+            el.select();
+            document.execCommand('copy');
+        }
+
+        function leaveGame() {
+            if(conn) conn.close();
+            if(peer) peer.destroy();
+            location.reload();
+        }
+        
+        function resetLobby() {
+            if(peer) peer.destroy();
+            location.reload();
+        }
+
+        initBoard();
+    </script>
+</body>
+</html>
