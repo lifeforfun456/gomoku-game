@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multiplayer Gomoku</title>
+    <title>Xin vs Shan - Gomoku</title>
     <!-- PeerJS for WebRTC -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --wood-primary: #e3c48b;
-            --wood-dark: #8b5a2b;
+            /* Board Colors */
+            --grid-line-color: #4a3b2a; 
             --stone-shadow: rgba(0, 0, 0, 0.4);
             --bg-color: #2c3e50;
             --panel-bg: rgba(0, 0, 0, 0.3);
@@ -29,7 +29,7 @@
             min-height: 100vh;
             background-color: var(--bg-color);
             color: white;
-            overflow: hidden; /* Prevent scrolling during play */
+            overflow: hidden;
         }
 
         /* --- Screens --- */
@@ -128,11 +128,27 @@
             border: 2px solid #f1c40f;
         }
 
+        /* Standard Icon Avatar (for AI) */
         .avatar {
             font-size: 3rem;
             margin-bottom: 10px;
             color: #bdc3c7;
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 90px;
+        }
+
+        /* Custom Image Avatar (Xin & Shan) */
+        .custom-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
         }
 
         .ai-thinking .avatar {
@@ -146,7 +162,6 @@
             100% { transform: scale(1); text-shadow: 0 0 0 rgba(142, 68, 173, 0.4); }
         }
 
-        /* Chat/Speech Bubble for AI */
         .speech-bubble {
             position: absolute;
             top: -60px;
@@ -157,7 +172,7 @@
             font-size: 0.85rem;
             width: 180px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            display: none; /* Hidden by default */
+            display: none;
             z-index: 20;
             pointer-events: none;
         }
@@ -203,7 +218,7 @@
             gap: 10px;
         }
 
-        /* --- Board --- */
+        /* --- Board Styling --- */
         .board-wrapper {
             display: flex;
             flex-direction: column;
@@ -212,10 +227,29 @@
 
         .board-container {
             padding: 15px;
-            background-color: var(--wood-primary);
+            background-color: #e3c48b; /* Fallback color */
             border-radius: 4px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            background-image: linear-gradient(90deg, rgba(139,90,43,0.1) 0%, rgba(139,90,43,0) 50%, rgba(139,90,43,0.1) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Custom Background Image Layer (The Beach) */
+        .board-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            /* Reference to your beach photo */
+            background-image: url('WechatIMG136.jpg');
+            background-size: cover;
+            background-position: center;
+            
+            /* Visual Effects: Faint and Grey */
+            opacity: 0.3;             /* 30% opacity */
+            filter: grayscale(100%);  /* Black and white */
+            
+            z-index: 0;
+            pointer-events: none;
         }
 
         #gomoku-board {
@@ -224,8 +258,10 @@
             grid-template-rows: repeat(15, 1fr);
             width: 450px;
             height: 450px;
-            border: 2px solid var(--wood-dark);
+            border: 2px solid var(--grid-line-color);
             background: transparent;
+            position: relative;
+            z-index: 1; /* Above the image */
         }
 
         .cell {
@@ -236,8 +272,9 @@
             justify-content: center;
         }
 
-        .cell::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background-color: var(--wood-dark); z-index: 0; }
-        .cell::after { content: ''; position: absolute; left: 50%; top: 0; height: 100%; width: 1px; background-color: var(--wood-dark); z-index: 0; }
+        /* Grid lines logic */
+        .cell::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background-color: var(--grid-line-color); z-index: 0; }
+        .cell::after { content: ''; position: absolute; left: 50%; top: 0; height: 100%; width: 1px; background-color: var(--grid-line-color); z-index: 0; }
 
         .stone {
             width: 85%;
@@ -307,7 +344,7 @@
             </div>
 
             <div id="waiting-area" style="display: none;">
-                <p>Send this ID to your friend:</p>
+                <p>Send this ID to Shan:</p>
                 <div style="display: flex; gap: 5px;">
                     <input type="text" id="my-peer-id" readonly>
                     <button class="btn btn-copy" onclick="copyToClipboard()" style="width: auto;"><i class="fas fa-copy"></i></button>
@@ -323,11 +360,11 @@
     <div id="game-screen" class="screen">
         <div id="game-layout">
             
-            <!-- Player 1 (Left - You/Host) -->
+            <!-- Player 1 (Left - Xin) -->
             <div class="player-panel" id="panel-p1">
                 <div style="text-align: center;">
-                    <div class="avatar"><i class="fas fa-user-astronaut"></i></div>
-                    <div class="player-name" id="p1-name">You</div>
+                    <img src="WechatIMG137.jpg" class="custom-avatar" alt="Xin">
+                    <div class="player-name" id="p1-name">Xin</div>
                     <div class="player-role" id="p1-role">Host</div>
                 </div>
                 <div class="stone-indicator" id="p1-stone"></div>
@@ -351,12 +388,15 @@
                 </div>
             </div>
 
-            <!-- Player 2 (Right - Opponent/AI) -->
+            <!-- Player 2 (Right - Shan) -->
             <div class="player-panel" id="panel-p2">
                 <div class="speech-bubble" id="ai-bubble">Thinking...</div>
                 <div style="text-align: center;">
-                    <div class="avatar" id="p2-avatar"><i class="fas fa-robot"></i></div>
-                    <div class="player-name" id="p2-name">Opponent</div>
+                    <!-- Default to Shan's Avatar -->
+                    <div id="p2-avatar-container">
+                        <img src="WechatIMG138.jpg" class="custom-avatar" alt="Shan">
+                    </div>
+                    <div class="player-name" id="p2-name">Shan</div>
                     <div class="player-role" id="p2-role">Guest</div>
                 </div>
                 <div class="stone-indicator" id="p2-stone"></div>
@@ -378,7 +418,6 @@
     </div>
 
     <!-- MODALS -->
-    <!-- Approval Modal (Undo/Restart) -->
     <div id="approval-modal" class="modal">
         <div class="modal-content">
             <h2 id="approval-title">Request</h2>
@@ -412,10 +451,10 @@
         // Game State
         let gameState = {
             board: [],
-            history: [], // Stack of moves: {r, c, color}
-            turn: 'black', // 'black' or 'white'
-            myColor: null, // 'black', 'white', or null (if spectator/local)
-            p1Color: 'black', // Visual tracking for left panel
+            history: [], 
+            turn: 'black',
+            myColor: null, 
+            p1Color: 'black', 
             active: false,
             undoCount: MAX_UNDOS,
             winner: null
@@ -441,7 +480,7 @@
             p2Name: document.getElementById('p2-name'),
             p1Role: document.getElementById('p1-role'), 
             p2Role: document.getElementById('p2-role'), 
-            p2Avatar: document.getElementById('p2-avatar'),
+            p2AvatarContainer: document.getElementById('p2-avatar-container'), // Container for P2 avatar
             aiBubble: document.getElementById('ai-bubble'),
             btnDice: document.getElementById('btn-dice'),
             btnUndo: document.getElementById('btn-undo'),
@@ -482,20 +521,17 @@
             gameState.winner = null;
             gameState.undoCount = MAX_UNDOS;
             
-            // Default Colors if not randomized
             if (!gameState.p1Color) gameState.p1Color = 'black'; 
             
-            // Set myColor logic
             if (isLocal) {
-                gameState.myColor = 'both'; // Or 'black' if AI game
+                gameState.myColor = 'both'; 
                 gameState.p1Color = 'black';
             } else {
                 gameState.myColor = isHost ? gameState.p1Color : (gameState.p1Color === 'black' ? 'white' : 'black');
             }
 
-            // AI Game Setup
             if (isAiGame) {
-                gameState.myColor = 'black'; // Player is always Black vs AI for simplicity
+                gameState.myColor = 'black';
                 gameState.p1Color = 'black';
                 els.p2Panel.classList.remove('ai-thinking');
                 els.aiBubble.style.display = 'none';
@@ -514,23 +550,16 @@
             if (!gameState.active) return;
             if (gameState.board[r][c] !== null) return;
             
-            // Turn Checks
             if (!isLocal && gameState.turn !== gameState.myColor) return;
-            if (isAiGame && gameState.turn === 'white') return; // AI's turn
+            if (isAiGame && gameState.turn === 'white') return; 
 
-            // CRITICAL FIX: Capture turn color BEFORE making the move locally,
-            // because makeMove() will flip the turn.
             const colorToMove = gameState.turn;
-
             makeMove(r, c, colorToMove);
 
-            // Side Effects
             if (!isLocal && conn) {
-                // FIX: Send the color we just played, not the *next* turn color
                 conn.send({ type: 'move', r, c, color: colorToMove });
             }
 
-            // Trigger AI
             if (isAiGame && gameState.active && gameState.turn === 'white') {
                 triggerAiTurn();
             }
@@ -546,7 +575,6 @@
             const stone = cell.querySelector('.stone');
             stone.classList.add('placed', color);
             
-            // Highlight Last Move
             document.querySelectorAll('.last-move').forEach(el => el.classList.remove('last-move'));
             stone.classList.add('last-move');
 
@@ -580,14 +608,10 @@
 
         // --- GEMINI AI INTEGRATION ---
         async function triggerAiTurn() {
-            // Visuals
             els.p2Panel.classList.add('ai-thinking');
             els.status.innerText = "Gemini AI is thinking...";
             els.aiBubble.style.display = 'none';
 
-            // 1. Build Prompt based on History
-            // We replay history to describe the game state to the LLM. 
-            // This is efficient and gives the "flow" of the game.
             let promptHistory = gameState.history.map((m, i) => 
                 `Turn ${i+1} (${m.color}): Row ${m.r}, Col ${m.c}`
             ).join("\n");
@@ -595,56 +619,32 @@
             const systemPrompt = `
                 You are a world-class Gomoku (Five-in-a-Row) Grandmaster playing White. 
                 The board is 15x15 (0-indexed, 0-14).
-                
-                Your Goal: 
-                1. Win if you have 4 in a row.
-                2. Block opponent if they have 3 or 4 in a row.
-                3. Build your own lines.
-                
-                Current Board History:
+                Win if you have 4 in a row. Block opponent if they have 3 or 4.
+                Current History:
                 ${promptHistory}
-
-                Task:
-                Determine the BEST move for White. 
-                Return strictly JSON format:
-                {
-                    "row": integer (0-14),
-                    "col": integer (0-14),
-                    "message": "Short witty banter or strategic thought (max 10 words)"
-                }
-                Do not explain outside the JSON.
+                Return strictly JSON: { "row": int, "col": int, "message": "Short witty banter" }
             `;
 
-            // 2. Call API
             try {
                 const response = await fetch(GEMINI_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: systemPrompt }] }]
-                    })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
                 });
 
                 if (!response.ok) throw new Error("API Error");
                 const data = await response.json();
                 const text = data.candidates[0].content.parts[0].text;
-                
-                // 3. Parse JSON (Handle potential markdown wrapping)
                 const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
                 const move = JSON.parse(jsonStr);
 
-                // 4. Validate and Apply
                 if (isValid(move.row, move.col) && gameState.board[move.row][move.col] === null) {
                     makeMove(move.row, move.col, 'white');
-                    // Show Bubble
                     els.aiBubble.innerText = move.message;
                     els.aiBubble.style.display = 'block';
                 } else {
-                    // Fallback: Random Empty Spot (prevent crash)
-                    console.error("AI returned invalid move", move);
                     fallbackRandomMove();
                 }
-
             } catch (err) {
                 console.error("Gemini Failure:", err);
                 fallbackRandomMove();
@@ -656,18 +656,13 @@
         }
 
         function fallbackRandomMove() {
-            // Simple random fallback so game doesn't hang
-            let r, c;
-            let attempts = 0;
+            let r, c, attempts = 0;
             do {
                 r = Math.floor(Math.random() * BOARD_SIZE);
                 c = Math.floor(Math.random() * BOARD_SIZE);
                 attempts++;
             } while (gameState.board[r][c] !== null && attempts < 100);
-            
-            if (gameState.board[r][c] === null) {
-                makeMove(r, c, 'white');
-            }
+            if (gameState.board[r][c] === null) makeMove(r, c, 'white');
         }
 
         // --- UNDO SYSTEM ---
@@ -677,23 +672,14 @@
             if (gameState.history.length === 0) return;
             
             if (isAiGame) {
-                // In AI game, undo TWICE to get back to user turn
-                // Unless AI is currently thinking... then block
                 if (gameState.turn === 'white') return alert("Wait for AI to finish!");
-                
-                performUndo(); // Undo AI move
-                performUndo(); // Undo Player move
-                gameState.undoCount--;
-                updateUI();
+                performUndo(); performUndo(); 
+                gameState.undoCount--; updateUI();
                 return;
             }
 
-            if (isLocal) {
-                performUndo(); 
-                return;
-            }
+            if (isLocal) { performUndo(); return; }
 
-            // Network Request
             els.btnUndo.innerText = "Waiting...";
             els.btnUndo.disabled = true;
             conn.send({ type: 'undo_request' });
@@ -702,7 +688,6 @@
         function performUndo() {
             if (gameState.history.length === 0) return;
             const lastMove = gameState.history.pop();
-            
             gameState.board[lastMove.r][lastMove.c] = null;
             
             const cell = document.querySelector(`.cell[data-r="${lastMove.r}"][data-c="${lastMove.c}"]`);
@@ -720,7 +705,6 @@
                 const prevCell = document.querySelector(`.cell[data-r="${prev.r}"][data-c="${prev.c}"]`);
                 if(prevCell) prevCell.querySelector('.stone').classList.add('last-move');
             }
-            
             updateUI();
         }
 
@@ -802,7 +786,6 @@
                     }
                     return;
                 }
-                
                 alert("Connection Error: " + err.type);
                 resetLobby();
             });
@@ -812,10 +795,12 @@
             isHost = true;
             isLocal = false;
             isAiGame = false;
-            els.p1Name.innerText = "You (Host)";
-            els.p2Name.innerText = "Opponent";
+            
+            // Set Host as Xin, Opponent as Shan
+            els.p1Name.innerText = "Xin (Host)";
+            els.p2Name.innerText = "Shan";
             els.p2Role.innerText = "Guest";
-            els.p2Avatar.innerHTML = '<i class="fas fa-user"></i>';
+            els.p2AvatarContainer.innerHTML = '<img src="WechatIMG138.jpg" class="custom-avatar" alt="Shan">';
             els.btnDice.style.display = 'block'; 
             
             document.getElementById('initial-actions').style.display = 'none';
@@ -830,10 +815,12 @@
             isHost = false;
             isLocal = false;
             isAiGame = false;
-            els.p1Name.innerText = "Opponent (Host)";
-            els.p2Name.innerText = "You";
+            
+            // Joiner sees Host as Xin
+            els.p1Name.innerText = "Xin (Host)";
+            els.p2Name.innerText = "Shan (You)";
             els.p2Role.innerText = "Guest";
-            els.p2Avatar.innerHTML = '<i class="fas fa-user"></i>';
+            els.p2AvatarContainer.innerHTML = '<img src="WechatIMG138.jpg" class="custom-avatar" alt="Shan">';
             els.btnDice.style.display = 'none'; 
 
             const hostId = document.getElementById('join-id-input').value.trim();
@@ -860,10 +847,10 @@
             isLocal = true;
             isHost = true; 
             isAiGame = false;
-            els.p1Name.innerText = "Player 1";
-            els.p2Name.innerText = "Player 2";
+            els.p1Name.innerText = "Xin";
+            els.p2Name.innerText = "Shan";
             els.p2Role.innerText = "Local";
-            els.p2Avatar.innerHTML = '<i class="fas fa-user"></i>';
+            els.p2AvatarContainer.innerHTML = '<img src="WechatIMG138.jpg" class="custom-avatar" alt="Shan">';
             
             screens.lobby.classList.remove('active-screen');
             screens.game.classList.add('active-screen');
@@ -872,14 +859,15 @@
         }
 
         function startAiGame() {
-            isLocal = true; // AI uses local logic for board
+            isLocal = true; 
             isHost = true;
             isAiGame = true;
             
-            els.p1Name.innerText = "You";
+            els.p1Name.innerText = "Xin";
             els.p2Name.innerText = "Gemini AI ✨";
             els.p2Role.innerText = "Grandmaster";
-            els.p2Avatar.innerHTML = '<i class="fas fa-brain"></i>';
+            // Switch avatar to Robot/Brain for AI mode
+            els.p2AvatarContainer.innerHTML = '<div class="avatar"><i class="fas fa-brain"></i></div>';
             
             screens.lobby.classList.remove('active-screen');
             screens.game.classList.add('active-screen');
@@ -889,7 +877,6 @@
 
         function setupConnection(c) {
             conn = c;
-            
             conn.on('open', () => {
                 console.log("Connected");
                 if (connTimeout) clearTimeout(connTimeout);
@@ -898,23 +885,13 @@
                 screens.game.classList.add('active-screen');
                 if (isHost) {
                     applyColors('black');
-                    // FIX: Tell guest the game has started so their state syncs
                     conn.send({ type: 'setup_colors', p1Color: 'black' });
                     startGame();
                 }
             });
-            
             conn.on('data', (data) => handleData(data));
-            
-            conn.on('error', (err) => {
-                 alert("Data Connection Error");
-                 resetLobby();
-            });
-
-            conn.on('close', () => {
-                alert("Opponent Disconnected");
-                resetLobby();
-            });
+            conn.on('error', (err) => { alert("Data Connection Error"); resetLobby(); });
+            conn.on('close', () => { alert("Opponent Disconnected"); resetLobby(); });
         }
 
         function handleData(data) {
