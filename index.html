@@ -431,7 +431,7 @@
 
     <script>
         // --- GEMINI CONFIG ---
-        const apiKey = "AIzaSyAIBzCT3BlcvYsoG_GLicoeSfHwXchgcAY"; 
+        const apiKey = "AIzaSyAElE8BHOC81izfXaZ_kZgM2ep3PqqFgEU"; 
         const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         // --- GAME CONFIG ---
@@ -461,9 +461,11 @@
         };
 
         // --- SOUNDS ---
+        // Updated sounds based on your request and screenshot
         const audio = {
-            place: new Audio('https://rpg.hamsterrepublic.com/wiki-images/2/21/Collision8.ogg'),
-            win: new Audio('https://themushroomkingdom.net/sounds/wav/smw/smw_course_clear.wav'),
+            placeBlack: new Audio('smb_jump-small.wav'),
+            placeWhite: new Audio('smb_jump-super.wav'),
+            win: new Audio('smb_world_clear.wav'),
             notify: new Audio('https://rpg.hamsterrepublic.com/wiki-images/d/d7/Strange_Echo_3.ogg')
         };
 
@@ -537,8 +539,15 @@
                 els.aiBubble.style.display = 'none';
             }
 
+            // --- UI Updates ---
             els.btnRematch.style.display = 'none';
-            els.btnDice.style.display = 'none'; 
+            
+            // Allow dice for online multiplayer so players can randomize roles
+            if (!isLocal && !isAiGame) {
+                els.btnDice.style.display = 'block';
+            } else {
+                els.btnDice.style.display = 'none';
+            }
             
             updateUI();
             initBoard();
@@ -569,7 +578,14 @@
             gameState.board[r][c] = color;
             gameState.history.push({r, c, color});
             
-            audio.place.play().catch(e => {});
+            // Play specific sound based on color
+            if (color === 'black') {
+                audio.placeBlack.currentTime = 0;
+                audio.placeBlack.play().catch(e => {});
+            } else {
+                audio.placeWhite.currentTime = 0;
+                audio.placeWhite.play().catch(e => {});
+            }
 
             const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
             const stone = cell.querySelector('.stone');
@@ -589,6 +605,7 @@
         function handleWin(color) {
             gameState.active = false;
             gameState.winner = color;
+            audio.win.currentTime = 0;
             audio.win.play().catch(e => {});
             
             let winText = "";
@@ -635,15 +652,25 @@
                 if (!response.ok) throw new Error("API Error");
                 const data = await response.json();
                 const text = data.candidates[0].content.parts[0].text;
-                const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                const move = JSON.parse(jsonStr);
+                
+                // Fix: Robust JSON extraction to handle conversational text
+                const firstOpen = text.indexOf('{');
+                const lastClose = text.lastIndexOf('}');
+                
+                if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+                    const jsonStr = text.substring(firstOpen, lastClose + 1);
+                    const move = JSON.parse(jsonStr);
 
-                if (isValid(move.row, move.col) && gameState.board[move.row][move.col] === null) {
-                    makeMove(move.row, move.col, 'white');
-                    els.aiBubble.innerText = move.message;
-                    els.aiBubble.style.display = 'block';
+                    if (isValid(move.row, move.col) && gameState.board[move.row][move.col] === null) {
+                        makeMove(move.row, move.col, 'white');
+                        els.aiBubble.innerText = move.message;
+                        els.aiBubble.style.display = 'block';
+                    } else {
+                        console.warn("AI attempted invalid move:", move);
+                        fallbackRandomMove();
+                    }
                 } else {
-                    fallbackRandomMove();
+                    throw new Error("Invalid JSON format from AI");
                 }
             } catch (err) {
                 console.error("Gemini Failure:", err);
@@ -710,10 +737,28 @@
 
         // --- DICE / RANDOMIZE ---
         function randomizeColors() {
+            // Logic: 50/50 chance for Host (P1) to be Black
             const p1IsBlack = Math.random() < 0.5;
             const p1Color = p1IsBlack ? 'black' : 'white';
-            conn.send({ type: 'setup_colors', p1Color: p1Color });
-            applyColors(p1Color);
+            
+            if (!isLocal && conn) {
+                conn.send({ type: 'dice_roll', p1Color: p1Color });
+            }
+            
+            handleDiceRoll(p1Color);
+        }
+
+        function handleDiceRoll(p1Color) {
+            gameState.p1Color = p1Color;
+            audio.notify.play().catch(()=>{});
+            
+            // Restart game with new color settings
+            startGame(false);
+            
+            // Show status
+            const msg = (gameState.myColor === 'black') ? "Dice rolled! You are BLACK (First)" : "Dice rolled! You are WHITE (Second)";
+            els.status.innerText = msg;
+            els.status.style.color = "#f39c12";
         }
 
         function applyColors(p1Color) {
@@ -898,6 +943,7 @@
             switch(data.type) {
                 case 'move': makeMove(data.r, data.c, data.color); break;
                 case 'setup_colors': applyColors(data.p1Color); startGame(); break;
+                case 'dice_roll': handleDiceRoll(data.p1Color); break;
                 case 'undo_request': showApprovalModal("Undo Request", "Opponent wants to undo.", 'undo'); audio.notify.play().catch(()=>{}); break;
                 case 'undo_approve': performUndo(); gameState.undoCount--; updateUI(); els.btnUndo.disabled = false; break;
                 case 'undo_reject': alert("Undo Denied"); els.btnUndo.disabled = false; break;
